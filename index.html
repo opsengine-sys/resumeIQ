@@ -2649,7 +2649,16 @@
         
         text = text.replace(/\n{3,}/g, '\n\n').replace(/^[ \t]+/gm, '').trim();
         
-        el.value = text;
+        // --- STRUCTURAL PRE-CLEANUP ---
+        // Strip everything after footer markers and remove images to save space
+        const footerMarkers = ["Similar jobs", "People also viewed", "More searches", "Explore more"];
+        for (const marker of footerMarkers) {
+          const idx = text.toLowerCase().indexOf(marker.toLowerCase());
+          if (idx !== -1 && idx > 500) text = text.substring(0, idx);
+        }
+        text = text.replace(/!\[.*?\]\(.*?\)/g, '').replace(/\(https?:\/\/.*?\.(png|jpg|jpeg|gif|svg|webp|ico).*?\)/gi, '');
+        
+        el.value = text.trim();
         onJdChange();
         
         // Auto-trigger AI Cleanup after successful fetch
@@ -2684,7 +2693,7 @@ CRITICAL INSTRUCTIONS:
 5. Return ONLY the cleaned job text. No intro or outro.
 
 RAW TEXT:
-${rawText.slice(0, 8000)}`;
+${rawText.slice(0, 12000)}`;
 
         // Always use Pollinations for cleanup to save user credits/rate limits
         const cleanText = await callOpenAICompat(prompt, 'https://text.pollinations.ai/openai/v1', 'openai');
