@@ -2102,6 +2102,7 @@
           </div>
           <div class="card-head-right">
             <span id="jdBadge" class="card-badge" style="display:none"></span>
+            <button class="clear-btn" id="aiCleanBtn" onclick="cleanJdWithAi()" style="color:var(--accent);border-color:var(--accent-bg);display:none;margin-right:8px">✨ AI Clean</button>
             <button class="clear-btn" id="fetchJdBtn" onclick="fetchJdFromUrl()" style="color:var(--blue);border-color:var(--blue-bg);display:none">🔗 Fetch Link</button>
             <button class="clear-btn" onclick="clearJD()">✕ Clear</button>
           </div>
@@ -2602,6 +2603,9 @@
       const isUrl = /^https?:\/\/[^\s$.?#].[^\s]*$/i.test(val);
       fetchBtn.style.display = isUrl ? 'inline' : 'none';
       
+      // Show AI Clean button if there is significant content
+      document.getElementById('aiCleanBtn').style.display = (val.length > 300 && !isUrl) ? 'inline' : 'none';
+      
       updateAnalyzeBtn();
     }
 
@@ -2622,32 +2626,63 @@
         
         if (text.length < 100) throw new Error('The page returned too little content. Please copy-paste manually.');
         
-        // --- GENERAL SMART CLEANUP ---
+        // --- REFINED SMART CLEANUP (Safe) ---
         // 1. Remove all image markdown and static asset links
         text = text.replace(/!\[.*?\]\(.*?\)/g, ''); 
         text = text.replace(/\[!\[.*?\]\(.*?\)\]\(.*?\)/g, '');
         text = text.replace(/\(https?:\/\/.*?\.(png|jpg|jpeg|gif|svg|webp|ico).*?\)/gi, '');
         
-        // 2. Remove Sign-in/Join/Social blocks (Generic patterns)
+        // 2. Remove typical navigation blocks without deleting everything after
         text = text.replace(/Join or sign in[\s\S]*?Cookie Policy\./gi, '');
         text = text.replace(/By clicking Continue[\s\S]*?Cookie Policy\./gi, '');
         text = text.replace(/Sign in to [\s\S]*?Cookie Policy\./gi, '');
         text = text.replace(/##  to join or sign in[\s\S]*?Cookie Policy\./gi, '');
         text = text.replace(/Sign in with Email|Continue with Google|Join now|Join with email|Sign in/gi, '');
-        
-        // 3. Remove typical footer junk (Similar jobs, People also viewed, Search etc)
-        text = text.replace(/(Similar jobs|People also viewed|More searches|Report this job|Save|Share|About|Accessibility|User Agreement|Privacy Policy|Cookie Policy)[\s\S]*$/gi, '');
-        
-        // 4. Remove leftover markdown links that are just navigation
         text = text.replace(/\[Skip to main content\].*?\n/gi, '');
         
-        // Final polish: Clean up double empty lines and extra whitespace
+        // 3. Remove known junk headers/footers selectively
+        const junkPatterns = ["Similar jobs", "People also viewed", "More searches", "LinkedIn©", "Report this job"];
+        junkPatterns.forEach(p => {
+            const idx = text.toLowerCase().lastIndexOf(p.toLowerCase());
+            if (idx > text.length * 0.7) text = text.substring(0, idx); // Only delete if in the last 30% of file
+        });
+        
         text = text.replace(/\n{3,}/g, '\n\n').replace(/^[ \t]+/gm, '').trim();
         
         el.value = text;
         onJdChange();
       } catch (e) {
         alert('Error fetching link: ' + e.message + '\n\nNote: Some sites block direct access. You may need to copy-paste the text manually.');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+      }
+    }
+
+    async function cleanJdWithAi() {
+      const el = document.getElementById('jdInput');
+      const rawText = el.value.trim();
+      if (rawText.length < 100) return;
+      
+      const btn = document.getElementById('aiCleanBtn');
+      const originalText = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner"></div> Cleaning…';
+      
+      try {
+        const prompt = `You are a helpful assistant. Below is a raw fetch of a job posting page. 
+EXTRACT ONLY the Job Title, Company Name, and the full Job Description (Responsibilities, Requirements, Benefits). 
+REMOVE all navigation links, sign-in prompts, footer junk, and cookie notices.
+Return only the clean job text.
+
+RAW TEXT:
+${rawText.slice(0, 8000)}`;
+
+        const cleanText = await callProvider({ name: 'JD Cleanup' }, prompt);
+        el.value = cleanText.summary || cleanText; // Handle both JSON and raw string if provider behaves differently
+        onJdChange();
+      } catch (e) {
+        alert('AI Cleanup failed: ' + e.message);
       } finally {
         btn.disabled = false;
         btn.innerHTML = originalText;
