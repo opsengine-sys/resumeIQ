@@ -2,6 +2,17 @@
 
 > **A single-file, browser-based AI tool that scores and ranks resumes against a job description — instantly, privately, and for free.**
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel-black?style=flat-square&logo=vercel)](https://resumeiq.vercel.app)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](./LICENSE)
+[![No Install](https://img.shields.io/badge/No%20Install-Open%20in%20Browser-blue?style=flat-square)]()
+[![Zero Dependencies](https://img.shields.io/badge/Dependencies-Zero-green?style=flat-square)]()
+
+---
+
+## 🌐 Live Demo
+
+👉 **[resumeiq.vercel.app](https://resumeiq.vercel.app)** — Open, paste, analyze. No signup, no install.
+
 ---
 
 ## ✨ Features
@@ -21,6 +32,10 @@
 
 No installation, no build step, no server required.
 
+**Option 1 — Use the live app:**
+👉 [resumeiq.vercel.app](https://resumeiq.vercel.app)
+
+**Option 2 — Run locally:**
 1. **[Download `resume-analyzer.html`](./resume-analyzer.html)**
 2. Open it in any modern browser (Chrome, Edge, Firefox)
 3. Pick an AI provider and paste your API key (or use the free public option)
@@ -123,15 +138,10 @@ The AI is prompted to return a structured JSON object containing:
 
 ```
 resumeIQ/
-└── resume-analyzer.html   # The entire application (single file)
-└── README.md
+├── resume-analyzer.html   # The entire application (single file)
+├── README.md
+└── LICENSE
 ```
-
----
-
-## 📸 Screenshots
-
-> _Upload resumes, paste a JD, and get ranked results with skill match analysis in seconds._
 
 ---
 
@@ -147,7 +157,7 @@ Issues and PRs are welcome. Since this is a single-file app, all changes go into
 
 ## 📜 License
 
-MIT — free to use, modify, and distribute.
+This project is licensed under the **MIT License** — see the [LICENSE](./LICENSE) file for details.
 
 ---
 
