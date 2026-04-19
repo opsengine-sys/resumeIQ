@@ -2106,9 +2106,11 @@
             <button class="clear-btn" onclick="clearJD()">✕ Clear</button>
           </div>
         </div>
-        <textarea id="jdInput"
           placeholder="Paste the full job description here…&#10;&#10;• Role title and team&#10;• Key responsibilities&#10;• Required skills &amp; tools&#10;• Years of experience&#10;• Education requirements"
           rows="5" style="flex: 1; min-height: 140px; resize: none; overflow-y: auto;" oninput="onJdChange()"></textarea>
+        <div id="jdHint" style="font-size: 10.5px; color: var(--ink3); margin-top: 6px; padding: 0 4px;">
+          💡 <strong>Tip:</strong> You can also paste a <strong>LinkedIn</strong> or <strong>Indeed</strong> link and click the fetch button.
+        </div>
       </div>
       <div class="card">
         <div class="card-head">
@@ -2619,19 +2621,32 @@
         
         if (text.length < 100) throw new Error('The page returned too little content. Please copy-paste manually.');
         
-        // --- SMART CLEANUP ---
-        // 1. Remove LinkedIn/Indeed junk like "Sign in", "Similar jobs", "Join now"
-        text = text.replace(/Join or sign in to find your next job[\s\S]*?By clicking Continue/gi, '');
-        text = text.replace(/Continue with Google[\s\S]*?Sign in with Email/gi, '');
+        // --- AGGRESSIVE SMART CLEANUP ---
+        // Remove Sign-in/Join prompts and Agreement text
+        text = text.replace(/Join or sign in to find your next job[\s\S]*?Cookie Policy\./gi, '');
+        text = text.replace(/By clicking Continue to join or sign in[\s\S]*?Cookie Policy\./gi, '');
+        text = text.replace(/Sign in to access AI-powered advices[\s\S]*?Cookie Policy\./gi, '');
+        text = text.replace(/Sign in to evaluate your skills[\s\S]*?Cookie Policy\./gi, '');
+        text = text.replace(/Sign in to tailor your resume[\s\S]*?Cookie Policy\./gi, '');
+        text = text.replace(/##  to join or sign in, you agree to LinkedIn’s[\s\S]*?Cookie Policy\./gi, '');
+        text = text.replace(/Sign in with Email|Continue with Google|Join now|Join with email/gi, '');
+        
+        // Remove common navigation junk
+        text = text.replace(/\[Skip to main content\][\s\S]*?\[Join now\]/gi, '');
         text = text.replace(/Similar jobs[\s\S]*$/gi, '');
         text = text.replace(/People also viewed[\s\S]*$/gi, '');
         text = text.replace(/More searches[\s\S]*$/gi, '');
         text = text.replace(/LinkedIn© \d{4}[\s\S]*$/gi, '');
-        text = text.replace(/\[Skip to main content\].*?\[Join now\]/gi, '');
-        text = text.replace(/!\[Image \d+\]/gi, ''); // Remove image markdown
+        text = text.replace(/Report this job|Save|Share/gi, '');
         
-        // 2. Clean up double empty lines
-        text = text.replace(/\n{3,}/g, '\n\n').trim();
+        // Remove all image markdown and leftover link junk in parentheses
+        text = text.replace(/!\[.*?\]\(.*?\)/g, ''); // Standard images
+        text = text.replace(/\[!\[.*?\]\(.*?\)\]\(.*?\)/g, ''); // Linked images
+        text = text.replace(/\(https:\/\/static\.licdn\.com\/.*?\)/g, ''); // Static asset links
+        text = text.replace(/\(https:\/\/media\.licdn\.com\/.*?\)/g, ''); // Media asset links
+        
+        // Final polish: Clean up double empty lines and extra whitespace
+        text = text.replace(/\n{3,}/g, '\n\n').replace(/^[ \t]+/gm, '').trim();
         
         el.value = text;
         onJdChange();
