@@ -11,7 +11,7 @@
 
 ## 🌐 Live Demo
 
-👉 **[resumeiq-atsresumecompare.netlify.app](https://resumeiq-atsresumecompare.netlify.app/)** — Open, paste, analyze. No signup, no install.
+👉 **[https://resumeiq-compare-jd.netlify.app/](https://resumeiq-compare-jd.netlify.app/))** — Open, paste, analyze. No signup, no install.
 
 ---
 
