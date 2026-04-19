@@ -2671,16 +2671,17 @@
       
       try {
         const prompt = `You are an expert recruitment assistant. Below is a raw text fetch of a job posting page. 
-Your goal is to extract the FULL job description while removing all "website junk".
+Your goal is to extract the FULL, UNABRIDGED job description while removing all "website junk".
 
-INSTRUCTIONS:
-1. PRESERVE everything relevant to the job: Title, Company, Overview, Responsibilities, Skills, Qualifications, Education, Benefits, and Work Environment.
-2. REMOVE ONLY non-job content: Navigation menus, "Sign in" buttons, "Join now" prompts, footer links, cookie notices, and "Similar jobs" sections.
-3. Keep the original wording as much as possible. Do not summarize — EXTRACT.
-4. Return ONLY the cleaned job text. No intro or outro.
+CRITICAL INSTRUCTIONS:
+1. DO NOT SUMMARIZE OR SHORTEN. Preserve every single requirement, responsibility, and detail.
+2. PRESERVE everything relevant to the job: Title, Company, Overview, Responsibilities, Skills, Qualifications, Education, Benefits, and Work Environment.
+3. REMOVE ONLY non-job content: Navigation menus, "Sign in" buttons, "Join now" prompts, footer links, cookie notices, and "Similar jobs" sections.
+4. Keep the original wording and formatting as much as possible. 
+5. Return ONLY the cleaned job text. No intro or outro.
 
 RAW TEXT:
-${rawText.slice(0, 8500)}`;
+${rawText.slice(0, 15000)}`;
 
         const cleanText = await callAi(prompt);
         el.value = cleanText.trim();
