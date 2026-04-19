@@ -2667,7 +2667,7 @@
       const btn = document.getElementById('aiCleanBtn');
       const originalText = btn.innerHTML;
       btn.disabled = true;
-      btn.innerHTML = '<div class="spinner"></div> Cleaning…';
+      btn.innerHTML = '<div class="spinner"></div> Cleaning (Free)…';
       
       try {
         const prompt = `You are an expert recruitment assistant. Below is a raw text fetch of a job posting page. 
@@ -2681,13 +2681,14 @@ CRITICAL INSTRUCTIONS:
 5. Return ONLY the cleaned job text. No intro or outro.
 
 RAW TEXT:
-${rawText.slice(0, 15000)}`;
+${rawText.slice(0, 12000)}`;
 
-        const cleanText = await callAi(prompt);
+        // Always use Pollinations for cleanup to save user credits/rate limits
+        const cleanText = await callOpenAICompat(prompt, 'https://text.pollinations.ai/openai/v1', 'openai');
         el.value = cleanText.trim();
         onJdChange();
       } catch (e) {
-        alert('AI Cleanup failed: ' + e.message);
+        alert('AI Cleanup failed: ' + e.message + '\n\nNote: If this persists, you can still copy-paste manually.');
       } finally {
         btn.disabled = false;
         btn.innerHTML = originalText;
