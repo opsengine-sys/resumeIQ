@@ -834,7 +834,12 @@
     }
 
     .carousel-track-wrap {
-      overflow: hidden
+      overflow: hidden;
+      cursor: grab;
+    }
+
+    .carousel-track-wrap.dragging {
+      cursor: grabbing;
     }
 
     .carousel-track {
@@ -2199,6 +2204,12 @@
         </svg>
         Analyze Resumes
       </button>
+      <button class="btn btn-outline" id="stopBtn" onclick="stopAnalysis()" style="display:none; border-color:#e2e8f0; color:#64748b;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor"/>
+        </svg>
+        Stop Analysis
+      </button>
     </div>
 
     <div id="errorBanner" class="error-banner" style="display:none"></div>
@@ -2304,6 +2315,12 @@
         <input type="password" class="modal-input" id="apiKeyInput" placeholder="Paste your API key…" />
         <div class="modal-hint" id="apiKeyHint"></div>
       </div>
+      <div class="security-note" style="margin: 16px 0; padding: 12px; background: #fef2f2; border-radius: 8px; border: 1px solid #fee2e2; display: flex; gap: 10px; align-items: flex-start;">
+        <span style="font-size: 16px;">🛡️</span>
+        <div style="font-size: 11.5px; color: #991b1b; line-height: 1.4;">
+          <strong>Security Notice:</strong> Save your API keys in a safe place to reuse them later. Your keys are stored only in your browser's session. <strong>Never share your API keys with anyone.</strong>
+        </div>
+      </div>
       <div class="modal-actions">
         <button class="btn btn-secondary" onclick="closeProviderModal()">Cancel</button>
         <button class="btn btn-primary" onclick="saveProvider()">Save &amp; Use</button>
@@ -2316,6 +2333,13 @@
     <div class="modal">
       <div class="modal-title">Get a Free API Key</div>
       <div class="modal-sub">You don't need to be a developer. Pick a provider, create an account, and generate a key.</div>
+
+      <div class="security-note" style="margin: 16px 0; padding: 12px; background: #f0fdf4; border-radius: 8px; border: 1px solid #dcfce7; display: flex; gap: 10px; align-items: flex-start;">
+        <span style="font-size: 16px;">🔐</span>
+        <div style="font-size: 11.5px; color: #166534; line-height: 1.4;">
+          <strong>Important:</strong> Keep your API keys private. Save them in a secure password manager or file so you can easily reuse them. We never store or see your keys—they stay purely in your browser.
+        </div>
+      </div>
 
       <div class="provider-cards" style="max-height: 400px; gap: 10px; margin-bottom: 20px;">
         <!-- Pollinations -->
@@ -2377,10 +2401,22 @@
           </div>
         </a>
 
+        <!-- DeepSeek -->
+        <a href="https://platform.deepseek.com" target="_blank" style="text-decoration:none; color:inherit;">
+          <div class="provider-card" style="align-items:flex-start; padding: 16px;">
+            <div class="prov-icon" style="background:#007bff22; color:#007bff; border-radius: 50%;">6</div>
+            <div class="prov-body">
+              <div class="prov-name">DeepSeek <span class="card-badge" style="margin-left:6px; background:#007bff22; color:#007bff">Efficient</span></div>
+              <div class="prov-desc" style="margin-top:4px; font-size:11.5px;">Click here to visit DeepSeek Platform. Sign up, top up your account, and create an API key for high-quality, low-cost analysis.</div>
+            </div>
+            <div style="color:var(--blue); font-size:16px;">↗</div>
+          </div>
+        </a>
+
         <!-- Together AI -->
         <a href="https://api.together.ai" target="_blank" style="text-decoration:none; color:inherit;">
           <div class="provider-card" style="align-items:flex-start; padding: 16px;">
-            <div class="prov-icon" style="background:#0ea5e922; color:#0ea5e9; border-radius: 50%;">6</div>
+            <div class="prov-icon" style="background:#0ea5e922; color:#0ea5e9; border-radius: 50%;">7</div>
             <div class="prov-body">
               <div class="prov-name">Together AI</div>
               <div class="prov-desc" style="margin-top:4px; font-size:11.5px;">Click here to visit Together AI. Sign up for $1 free credit, click <strong>"API Keys"</strong>, and paste the key in our settings.</div>
@@ -2427,11 +2463,11 @@
       },
       {
         id: 'gemini', name: 'Google Gemini', icon: '✦', iconBg: '#4285f4', free: true, type: 'gemini',
-        model: 'gemini-1.5-flash',
-        desc: 'Free with large context. Great for long resumes.',
-        meta: 'Model: Gemini 1.5 Flash · Free tier',
+        model: 'gemini-3.1-flash-lite-preview',
+        desc: 'New Gemini 3.1. Ultra-fast and highly effective.',
+        meta: 'Model: Gemini 3.1 Flash Lite · Free tier',
         placeholder: 'AIzaSy…',
-        hint: 'Get a free key → <a href="https://aistudio.google.com" target="_blank">aistudio.google.com</a> · Key starts with <code>AIzaSy</code>',
+        hint: 'Get a free key → <a href="https://aistudio.google.com" target="_blank">aistudio.google.com</a> · Use Gemini 3.1 for best results.',
       },
       {
         id: 'nvidia', name: 'NVIDIA NIM', icon: 'N', iconBg: '#76b900', free: true, type: 'openai-compat',
@@ -2452,37 +2488,28 @@
         hint: 'Get a free key → <a href="https://openrouter.ai" target="_blank">openrouter.ai</a> · Many models have free tiers.',
       },
       {
-        id: 'together', name: 'Together AI', icon: 'T', iconBg: '#0ea5e9', free: true, type: 'openai-compat',
-        baseUrl: 'https://api.together.xyz/v1',
-        model: 'meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo',
-        desc: '$1 free credit on signup. Fast Llama 3.1 70B.',
-        meta: 'Model: Llama 3.1 70B Turbo · $1 free credit',
-        placeholder: '…',
-        hint: 'Get a key → <a href="https://api.together.ai" target="_blank">api.together.ai</a> · $1 free credit on signup.',
-      },
-      {
-        id: 'mistral', name: 'Mistral AI', icon: 'M', iconBg: '#ff7000', free: true, type: 'openai-compat',
-        baseUrl: 'https://api.mistral.ai/v1',
-        model: 'mistral-small-latest',
-        desc: 'Free trial available. Excellent European AI.',
-        meta: 'Model: Mistral Small · Free trial',
-        placeholder: '…',
-        hint: 'Get a key → <a href="https://console.mistral.ai" target="_blank">console.mistral.ai</a> · Free trial on signup.',
+        id: 'deepseek', name: 'DeepSeek', icon: 'D', iconBg: '#007bff', free: false, type: 'openai-compat',
+        baseUrl: 'https://api.deepseek.com',
+        model: 'deepseek-chat',
+        desc: 'Highly efficient and smart. Great value.',
+        meta: 'Model: DeepSeek V3 · Low cost',
+        placeholder: 'sk-…',
+        hint: 'Get a key → <a href="https://platform.deepseek.com" target="_blank">platform.deepseek.com</a>',
       },
       {
         id: 'openai', name: 'OpenAI', icon: '⬡', iconBg: '#10a37f', free: false, type: 'openai-compat',
         baseUrl: 'https://api.openai.com/v1',
         model: 'gpt-4o-mini',
-        desc: 'GPT-4o mini. New accounts get $5 free credits.',
+        desc: 'GPT-4o mini. Fast and reliable.',
         meta: 'Model: GPT-4o mini · Pay-as-you-go',
         placeholder: 'sk-…',
         hint: 'Get a key → <a href="https://platform.openai.com" target="_blank">platform.openai.com</a>',
       },
       {
         id: 'anthropic', name: 'Anthropic Claude', icon: 'A', iconBg: '#c0392b', free: false, type: 'anthropic',
-        model: 'claude-sonnet-4-20250514',
-        desc: 'Claude Sonnet 4. Best analysis quality.',
-        meta: 'Model: Claude Sonnet 4 · Pay-as-you-go',
+        model: 'claude-3-5-sonnet-20241022',
+        desc: 'Claude 3.5 Sonnet. Best analysis quality.',
+        meta: 'Model: Claude 3.5 Sonnet · Pay-as-you-go',
         placeholder: 'sk-ant-…',
         hint: 'Get a key → <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>',
       },
@@ -2668,52 +2695,82 @@
     }
 
     // ── ANALYSIS ─────────────────────────────────────────────────
+    let analysisAbortController = null;
+    let isAnalyzing = false;
+
+    function stopAnalysis() {
+      if (analysisAbortController) {
+        analysisAbortController.abort();
+        analysisAbortController = null;
+      }
+      isAnalyzing = false;
+      document.getElementById('stopBtn').style.display = 'none';
+      const btn = document.getElementById('analyzeBtn');
+      btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Analyze Resumes`;
+      updateAnalyzeBtn();
+      showError('Analysis stopped by user.');
+    }
+
     async function runAnalysis() {
       const p = getProvider();
       if (!p.noKey && !apiKey) { openProviderModal(); return; }
       hideError();
       const jd = document.getElementById('jdInput').value.trim();
-      // Reset errored files so they get retried
+      
       files.forEach(f => { if (f.status === 'error' || f.status === 'analyzing') f.status = 'ready'; });
       const readyFiles = files.filter(f => f.status === 'ready');
       if (!readyFiles.length) { updateAnalyzeBtn(); return; }
 
+      isAnalyzing = true;
+      analysisAbortController = new AbortController();
+      const signal = analysisAbortController.signal;
+
       const btn = document.getElementById('analyzeBtn');
+      const stopBtn = document.getElementById('stopBtn');
       btn.disabled = true;
       btn.innerHTML = '<div class="spinner"></div> Analyzing…';
+      stopBtn.style.display = 'inline-flex';
 
       const pw = document.getElementById('progressWrap');
       pw.style.display = 'block'; pw.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
       let hadError = false;
-      for (let i = 0; i < readyFiles.length; i++) {
-        const entry = readyFiles[i]; entry.status = 'analyzing'; renderFileList();
-        setProgress(Math.round((i / readyFiles.length) * 100), `Analyzing ${entry.name} (${i + 1}/${readyFiles.length})…`);
-        try {
-          if (i > 0) await new Promise(r => setTimeout(r, 2000)); // Delay to prevent rate limits
-          const r = await callProvider(entry, jd);
-          // Remove any previous result for this file (if retrying)
-          const prev = results.findIndex(x => x.filename === entry.name);
-          if (prev >= 0) results.splice(prev, 1);
-          results.push(r); entry.status = 'done';
-        } catch (e) {
-          entry.status = 'error'; entry.error = e.message; hadError = true;
-          showError(`❌ ${entry.name}: ${e.message}`);
-          if (/key|auth|invalid|forbidden|401|403/i.test(e.message)) break;
+      try {
+        for (let i = 0; i < readyFiles.length; i++) {
+          if (signal.aborted) break;
+          const entry = readyFiles[i]; entry.status = 'analyzing'; renderFileList();
+          setProgress(Math.round((i / readyFiles.length) * 100), `Analyzing ${entry.name} (${i + 1}/${readyFiles.length})…`);
+          try {
+            if (i > 0) await new Promise(r => setTimeout(r, 2000));
+            if (signal.aborted) break;
+            const r = await callProvider(entry, jd, signal);
+            if (signal.aborted) break;
+            const prev = results.findIndex(x => x.filename === entry.name);
+            if (prev >= 0) results.splice(prev, 1);
+            results.push(r); entry.status = 'done';
+          } catch (e) {
+            if (e.name === 'AbortError' || signal.aborted) throw e;
+            entry.status = 'error'; entry.error = e.message; hadError = true;
+            showError(`❌ ${entry.name}: ${e.message}`);
+            if (/key|auth|invalid|forbidden|401|403/i.test(e.message)) break;
+          }
+          renderFileList();
+          if (results.length) renderResults();
         }
-        renderFileList();
+      } catch (e) {
+        if (e.name !== 'AbortError') showError(e.message);
+      } finally {
+        isAnalyzing = false;
+        analysisAbortController = null;
+        stopBtn.style.display = 'none';
+        setProgress(100, hadError ? 'Completed with errors' : (signal?.aborted ? 'Stopped.' : 'Complete!'));
+        setTimeout(() => { pw.style.display = 'none'; }, 1000);
+        results.sort((a, b) => b.score - a.score);
+        carouselPage = 0;
+        if (results.length > 0) renderResults();
+        btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Analyze Resumes`;
+        updateAnalyzeBtn();
       }
-
-      setProgress(100, hadError ? 'Completed with some errors — click Retry to re-run failed files' : 'Analysis complete!');
-      setTimeout(() => { pw.style.display = 'none'; }, 1000);
-
-      results.sort((a, b) => b.score - a.score);
-      carouselPage = 0;
-      if (results.length > 0) renderResults();
-
-      btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> ${hadError ? 'Retry' : 'Analyze Resumes'}`;
-      updateAnalyzeBtn();
-      if (hadError) btn.disabled = true;
     }
 
     // ── PROMPT — robust, avoids JSON injection ─────────────────────
@@ -2744,15 +2801,15 @@ Respond with ONLY this JSON (fill every field, use only simple ASCII in strings)
 {"candidateName":"string","currentRole":"string","yearsExperience":"string","score":0,"skillsScore":0,"experienceScore":0,"educationScore":0,"communicationScore":0,"matchedSkills":["skill1"],"missingSkills":["skill1"],"strengths":["strength1"],"concerns":["concern1"],"summary":"string","recommendation":"string","hiringAction":"Hire|Consider|Pass"}`;
     }
 
-    async function callProvider(entry, jd) {
+    async function callProvider(entry, jd, signal) {
       const p = getProvider();
       const prompt = buildPrompt(entry, jd);
       let raw;
-      if (p.type === 'gemini') raw = await callGemini(prompt);
-      else if (p.type === 'anthropic') raw = await callAnthropic(prompt);
-      else if (p.type === 'custom') raw = await callOpenAICompat(prompt, customBaseUrl, customModelId);
-      else if (p.id === 'openrouter') raw = await callOpenRouter(prompt);
-      else raw = await callOpenAICompat(prompt, p.baseUrl, p.model);
+      if (p.type === 'gemini') raw = await callGemini(prompt, signal);
+      else if (p.type === 'anthropic') raw = await callAnthropic(prompt, signal);
+      else if (p.type === 'custom') raw = await callOpenAICompat(prompt, customBaseUrl, customModelId, signal);
+      else if (p.id === 'openrouter') raw = await callOpenRouter(prompt, signal);
+      else raw = await callOpenAICompat(prompt, p.baseUrl, p.model, signal);
 
       // Extract JSON from response — handles cases where model adds text around it
       if (!raw) throw new Error("Received an empty response from the AI.");
@@ -2769,13 +2826,14 @@ Respond with ONLY this JSON (fill every field, use only simple ASCII in strings)
       }
     }
 
-    async function callOpenAICompat(prompt, baseUrl, model) {
+    async function callOpenAICompat(prompt, baseUrl, model, signal) {
       const p = getProvider();
       const headers = { 'Content-Type': 'application/json' };
       if (!p.noKey) headers['Authorization'] = `Bearer ${apiKey}`;
       const res = await fetch(`${baseUrl}/chat/completions`, {
         method: 'POST', headers,
-        body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }], temperature: 0.1, max_tokens: 1400 })
+        body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }], temperature: 0.1, max_tokens: 1400 }),
+        signal
       });
       if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e?.error?.message || `API error ${res.status}`); }
       const data = await res.json();
@@ -2785,12 +2843,16 @@ Respond with ONLY this JSON (fill every field, use only simple ASCII in strings)
     }
 
     // OpenRouter with automatic fallback across multiple free models
-    async function callOpenRouter(prompt) {
+    async function callOpenRouter(prompt, signal) {
       const FALLBACK_MODELS = [
-        'meta-llama/llama-3.3-70b-instruct:free',
-        'google/gemma-3-27b-it:free',
-        'google/gemma-3-12b-it:free',
-        'nousresearch/hermes-3-llama-3.1-405b:free',
+        'openai/gpt-oss-120b:free',
+        'google/gemini-2.0-flash-lite:free',
+        'nvidia/nemotron-3-nano-30b-a3b:free',
+        'google/gemma-4-31b:free',
+        'arcee-ai/trinity-large-preview:free',
+        'meta-llama/llama-3.1-8b-instruct:free',
+        'mistralai/mistral-small-24b-instruct-2501:free',
+        'qwen/qwen-2.5-72b-instruct:free'
       ];
       const headers = {
         'Content-Type': 'application/json',
@@ -2799,18 +2861,27 @@ Respond with ONLY this JSON (fill every field, use only simple ASCII in strings)
         'X-Title': 'ResumeIQ'
       };
       let lastErr = 'OpenRouter: all free models are currently unavailable. Please try again in a moment.';
-      for (const model of FALLBACK_MODELS) {
+      for (let i = 0; i < FALLBACK_MODELS.length; i++) {
+        const model = FALLBACK_MODELS[i];
         try {
           const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
             method: 'POST', headers,
-            body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }], temperature: 0.1, max_tokens: 1400 })
+            body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }], temperature: 0.1, max_tokens: 1400 }),
+            signal
           });
           const data = await res.json().catch(() => ({}));
-          // "Provider returned error" or overload — try next model
           const errMsg = data?.error?.message || '';
-          if (!res.ok || errMsg.toLowerCase().includes('provider') || errMsg.toLowerCase().includes('overload')) {
+          const isRetryable = !res.ok || 
+                             errMsg.toLowerCase().includes('provider') || 
+                             errMsg.toLowerCase().includes('overload') || 
+                             errMsg.toLowerCase().includes('no endpoints') ||
+                             errMsg.toLowerCase().includes('not found') ||
+                             res.status === 404 || res.status === 429 || res.status >= 500;
+
+          if (isRetryable) {
             lastErr = `${model}: ${errMsg || `HTTP ${res.status}`}`;
-            await new Promise(r => setTimeout(r, 800)); // small pause before next
+            // Progressive delay
+            await new Promise(r => setTimeout(r, 500 + (i * 200))); 
             continue;
           }
           const text = data?.choices?.[0]?.message?.content || data?.choices?.[0]?.text;
@@ -2823,29 +2894,42 @@ Respond with ONLY this JSON (fill every field, use only simple ASCII in strings)
       throw new Error(lastErr);
     }
 
-    async function callGemini(prompt) {
-      const model = getProvider().model.replace(/^models\//, '');
-      const urls = [
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+    async function callGemini(prompt, signal) {
+      const baseModel = getProvider().model.replace(/^models\//, '');
+      // Try multiple variations of endpoints and model IDs
+      const endpoints = [
+        `https://generativelanguage.googleapis.com/v1beta/models/${baseModel}:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`,
       ];
+      
       let lastErr = 'Gemini request failed.';
-      for (const url of urls) {
+      for (const url of endpoints) {
         let status = 0;
         try {
           const res = await fetch(url, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.1, maxOutputTokens: 1400 } })
+            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.1, maxOutputTokens: 1400 } }),
+            signal
           });
           status = res.status;
           const body = await res.json().catch(() => ({}));
-          if (status === 404) { lastErr = 'Model not found.'; continue; }
+          
+          if (status === 404) { 
+            lastErr = 'Model not found on this endpoint.'; 
+            continue; 
+          }
+          
           if (!res.ok) {
             const msg = body?.error?.message || `Gemini error ${status}`;
+            // If it's a key issue, stop immediately
             if (status === 400 || status === 401 || status === 403) throw new Error(msg);
-            lastErr = msg; continue;
+            lastErr = msg; 
+            continue;
           }
+          
           const text = body.candidates?.[0]?.content?.parts?.[0]?.text;
           if (!text) throw new Error('Empty response from Gemini.');
           return text;
@@ -2857,12 +2941,13 @@ Respond with ONLY this JSON (fill every field, use only simple ASCII in strings)
       throw new Error(lastErr);
     }
 
-    async function callAnthropic(prompt) {
+    async function callAnthropic(prompt, signal) {
       const model = getProvider().model;
       const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-        body: JSON.stringify({ model, max_tokens: 1400, messages: [{ role: 'user', content: prompt }] })
+        body: JSON.stringify({ model, max_tokens: 1400, messages: [{ role: 'user', content: prompt }] }),
+        signal
       });
       if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e?.error?.message || `Anthropic error ${res.status}`); }
       return (await res.json()).content?.find(b => b.type === 'text')?.text || '{}';
@@ -2906,12 +2991,6 @@ Respond with ONLY this JSON (fill every field, use only simple ASCII in strings)
       }
     }
 
-    function autoScrollCarousel() {
-      const maxPage = Math.max(0, results.length - CARDS_PER_PAGE);
-      carouselPage = carouselPage >= maxPage ? 0 : carouselPage + 1;
-      renderCarousel(getSorted());
-    }
-
     function getSorted() {
       const val = document.getElementById('sortSelect')?.value || 'score';
       const s = [...results];
@@ -2923,34 +3002,138 @@ Respond with ONLY this JSON (fill every field, use only simple ASCII in strings)
     }
 
     // ── CAROUSEL ──────────────────────────────────────────────────
+    let isDragging = false, startX, scrollLeft, carouselMoved = false;
+
     function renderCarousel(sorted) {
-      const total = sorted.length, maxPage = Math.max(0, total - CARDS_PER_PAGE);
-      if (carouselPage > maxPage) carouselPage = maxPage;
-      const offset = -(carouselPage * (100 / CARDS_PER_PAGE));
+      const total = sorted.length;
+      if (!total) return;
+      
       const dots = Array.from({ length: total }, (_, i) =>
-        `<div class="carousel-dot${i === carouselPage ? ' active' : ''}" onclick="gotoSlide(${i})"></div>`).join('');
+        `<div class="carousel-dot${i === carouselPage ? ' active' : ''}" data-idx="${i}" onclick="gotoSlide(${i})"></div>`).join('');
+
       document.getElementById('carouselView').innerHTML = `
     <div class="carousel-container">
-      <div class="carousel-track-wrap">
-        <div class="carousel-track" id="cTrack" style="transform:translateX(calc(${offset}% - ${carouselPage * 16}px))">
+      <div class="carousel-track-wrap" id="cTrackWrap">
+        <div class="carousel-track" id="cTrack">
           ${sorted.map((r, i) => `<div class="carousel-slide">${renderCard(r, i + 1)}</div>`).join('')}
         </div>
       </div>
       <div class="carousel-nav">
         <div class="carousel-arrows">
-          <button class="carousel-arrow" onclick="movePage(-1)" ${carouselPage === 0 ? 'disabled' : ''}>&#8592;</button>
-          <button class="carousel-arrow" onclick="movePage(1)" ${carouselPage >= maxPage ? 'disabled' : ''}>&#8594;</button>
+          <button class="carousel-arrow" id="prevArr" onclick="movePage(-1)">&#8592;</button>
+          <button class="carousel-arrow" id="nextArr" onclick="movePage(1)">&#8594;</button>
         </div>
         <div style="display:flex;align-items:center;gap:10px">
-          <div class="carousel-dots">${dots}</div>
-          <div class="carousel-counter">${carouselPage + 1}–${Math.min(carouselPage + CARDS_PER_PAGE, total)} of ${total}</div>
+          <div class="carousel-dots" id="cDots">${dots}</div>
+          <div class="carousel-counter" id="cCtr"></div>
         </div>
       </div>
     </div>`;
+
+      initCarouselEvents();
+      updateCarouselUI();
     }
 
-    function movePage(dir) { carouselPage = Math.max(0, Math.min(carouselPage + dir, results.length - CARDS_PER_PAGE)); renderCarousel(getSorted()); }
-    function gotoSlide(i) { carouselPage = i; renderCarousel(getSorted()); }
+    function initCarouselEvents() {
+      const wrap = document.getElementById('cTrackWrap');
+      const track = document.getElementById('cTrack');
+      if (!wrap || !track) return;
+
+      const startDragging = (e) => {
+        isDragging = true;
+        carouselMoved = false;
+        track.style.transition = 'none';
+        startX = (e.pageX || (e.touches && e.touches[0].pageX)) - track.offsetLeft;
+        scrollLeft = getTransformX(track);
+        wrap.classList.add('dragging');
+      };
+
+      const stopDragging = () => {
+        if (!isDragging) return;
+        isDragging = false;
+        wrap.classList.remove('dragging');
+        track.style.transition = '';
+        
+        // Snap to nearest slide
+        const firstSlide = track.querySelector('.carousel-slide');
+        if (!firstSlide) return;
+        const slideWidth = firstSlide.offsetWidth + 16;
+        const currentX = getTransformX(track);
+        carouselPage = Math.round(Math.abs(currentX) / slideWidth);
+        updateCarouselUI();
+      };
+
+      const moveDragging = (e) => {
+        if (!isDragging) return;
+        e.preventDefault();
+        carouselMoved = true;
+        const x = (e.pageX || (e.touches && e.touches[0].pageX)) - track.offsetLeft;
+        const walk = x - startX;
+        track.style.transform = `translateX(${scrollLeft + walk}px)`;
+      };
+
+      wrap.addEventListener('mousedown', startDragging);
+      window.addEventListener('mouseup', stopDragging);
+      wrap.addEventListener('mousemove', moveDragging);
+      
+      wrap.addEventListener('touchstart', startDragging);
+      wrap.addEventListener('touchend', stopDragging);
+      wrap.addEventListener('touchmove', moveDragging);
+    }
+
+    function getTransformX(el) {
+      const style = window.getComputedStyle(el);
+      const matrix = new (window.WebKitCSSMatrix || window.MSCSSMatrix || DOMMatrix)(style.transform);
+      return matrix.m41;
+    }
+
+    function updateCarouselUI() {
+      const total = results.length;
+      if (!total) return;
+      const maxPage = Math.max(0, total - CARDS_PER_PAGE);
+      if (carouselPage > maxPage) carouselPage = maxPage;
+      if (carouselPage < 0) carouselPage = 0;
+
+      const track = document.getElementById('cTrack');
+      if (track) {
+        const firstSlide = track.querySelector('.carousel-slide');
+        if (firstSlide) {
+          const slideWidth = firstSlide.offsetWidth + 16;
+          track.style.transform = `translateX(-${carouselPage * slideWidth}px)`;
+        }
+      }
+
+      // Update arrows
+      const prev = document.getElementById('prevArr'), next = document.getElementById('nextArr');
+      if (prev) prev.disabled = carouselPage === 0;
+      if (next) next.disabled = carouselPage >= maxPage;
+
+      // Update dots
+      document.querySelectorAll('.carousel-dot').forEach((d, i) => {
+        d.className = 'carousel-dot' + (i === carouselPage ? ' active' : '');
+      });
+
+      // Update counter
+      const ctr = document.getElementById('cCtr');
+      if (ctr) ctr.textContent = `${carouselPage + 1}–${Math.min(carouselPage + CARDS_PER_PAGE, total)} of ${total}`;
+    }
+
+    function movePage(dir) { 
+      carouselPage += dir; 
+      updateCarouselUI(); 
+    }
+    
+    function gotoSlide(i) { 
+      carouselPage = i; 
+      updateCarouselUI(); 
+    }
+
+    function autoScrollCarousel() {
+      if (isDragging) return;
+      const maxPage = Math.max(0, results.length - CARDS_PER_PAGE);
+      carouselPage = carouselPage >= maxPage ? 0 : carouselPage + 1;
+      updateCarouselUI();
+    }
 
     function renderCard(r, rank) {
       const verdict = r.score >= 75 ? 'Strong Match' : r.score >= 50 ? 'Possible Fit' : 'Weak Match';
