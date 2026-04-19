@@ -2106,10 +2106,11 @@
             <button class="clear-btn" onclick="clearJD()">✕ Clear</button>
           </div>
         </div>
+        <textarea id="jdInput"
           placeholder="Paste the full job description here…&#10;&#10;• Role title and team&#10;• Key responsibilities&#10;• Required skills &amp; tools&#10;• Years of experience&#10;• Education requirements"
           rows="5" style="flex: 1; min-height: 140px; resize: none; overflow-y: auto;" oninput="onJdChange()"></textarea>
         <div id="jdHint" style="font-size: 10.5px; color: var(--ink3); margin-top: 6px; padding: 0 4px;">
-          💡 <strong>Tip:</strong> You can also paste a <strong>LinkedIn</strong> or <strong>Indeed</strong> link and click the fetch button.
+          💡 <strong>Tip:</strong> You can also paste <strong>any job link</strong> (LinkedIn, Indeed, Glassdoor, etc.) and click the fetch button.
         </div>
       </div>
       <div class="card">
@@ -2621,29 +2622,24 @@
         
         if (text.length < 100) throw new Error('The page returned too little content. Please copy-paste manually.');
         
-        // --- AGGRESSIVE SMART CLEANUP ---
-        // Remove Sign-in/Join prompts and Agreement text
-        text = text.replace(/Join or sign in to find your next job[\s\S]*?Cookie Policy\./gi, '');
-        text = text.replace(/By clicking Continue to join or sign in[\s\S]*?Cookie Policy\./gi, '');
-        text = text.replace(/Sign in to access AI-powered advices[\s\S]*?Cookie Policy\./gi, '');
-        text = text.replace(/Sign in to evaluate your skills[\s\S]*?Cookie Policy\./gi, '');
-        text = text.replace(/Sign in to tailor your resume[\s\S]*?Cookie Policy\./gi, '');
-        text = text.replace(/##  to join or sign in, you agree to LinkedIn’s[\s\S]*?Cookie Policy\./gi, '');
-        text = text.replace(/Sign in with Email|Continue with Google|Join now|Join with email/gi, '');
+        // --- GENERAL SMART CLEANUP ---
+        // 1. Remove all image markdown and static asset links
+        text = text.replace(/!\[.*?\]\(.*?\)/g, ''); 
+        text = text.replace(/\[!\[.*?\]\(.*?\)\]\(.*?\)/g, '');
+        text = text.replace(/\(https?:\/\/.*?\.(png|jpg|jpeg|gif|svg|webp|ico).*?\)/gi, '');
         
-        // Remove common navigation junk
-        text = text.replace(/\[Skip to main content\][\s\S]*?\[Join now\]/gi, '');
-        text = text.replace(/Similar jobs[\s\S]*$/gi, '');
-        text = text.replace(/People also viewed[\s\S]*$/gi, '');
-        text = text.replace(/More searches[\s\S]*$/gi, '');
-        text = text.replace(/LinkedIn© \d{4}[\s\S]*$/gi, '');
-        text = text.replace(/Report this job|Save|Share/gi, '');
+        // 2. Remove Sign-in/Join/Social blocks (Generic patterns)
+        text = text.replace(/Join or sign in[\s\S]*?Cookie Policy\./gi, '');
+        text = text.replace(/By clicking Continue[\s\S]*?Cookie Policy\./gi, '');
+        text = text.replace(/Sign in to [\s\S]*?Cookie Policy\./gi, '');
+        text = text.replace(/##  to join or sign in[\s\S]*?Cookie Policy\./gi, '');
+        text = text.replace(/Sign in with Email|Continue with Google|Join now|Join with email|Sign in/gi, '');
         
-        // Remove all image markdown and leftover link junk in parentheses
-        text = text.replace(/!\[.*?\]\(.*?\)/g, ''); // Standard images
-        text = text.replace(/\[!\[.*?\]\(.*?\)\]\(.*?\)/g, ''); // Linked images
-        text = text.replace(/\(https:\/\/static\.licdn\.com\/.*?\)/g, ''); // Static asset links
-        text = text.replace(/\(https:\/\/media\.licdn\.com\/.*?\)/g, ''); // Media asset links
+        // 3. Remove typical footer junk (Similar jobs, People also viewed, Search etc)
+        text = text.replace(/(Similar jobs|People also viewed|More searches|Report this job|Save|Share|About|Accessibility|User Agreement|Privacy Policy|Cookie Policy)[\s\S]*$/gi, '');
+        
+        // 4. Remove leftover markdown links that are just navigation
+        text = text.replace(/\[Skip to main content\].*?\n/gi, '');
         
         // Final polish: Clean up double empty lines and extra whitespace
         text = text.replace(/\n{3,}/g, '\n\n').replace(/^[ \t]+/gm, '').trim();
