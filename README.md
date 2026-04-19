@@ -2,7 +2,7 @@
 
 > **A single-file, browser-based AI tool that scores and ranks resumes against a job description — instantly, privately, and for free.**
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel-black?style=flat-square&logo=vercel)](https://resumeiq.vercel.app)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Netlify-00C7B7?style=flat-square&logo=netlify)](https://resumeiq-atsresumecompare.netlify.app/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](./LICENSE)
 [![No Install](https://img.shields.io/badge/No%20Install-Open%20in%20Browser-blue?style=flat-square)]()
 [![Zero Dependencies](https://img.shields.io/badge/Dependencies-Zero-green?style=flat-square)]()
@@ -11,7 +11,7 @@
 
 ## 🌐 Live Demo
 
-👉 **[resumeiq.vercel.app](https://resumeiq.vercel.app)** — Open, paste, analyze. No signup, no install.
+👉 **[resumeiq-atsresumecompare.netlify.app](https://resumeiq-atsresumecompare.netlify.app/)** — Open, paste, analyze. No signup, no install.
 
 ---
 
@@ -33,7 +33,7 @@
 No installation, no build step, no server required.
 
 **Option 1 — Use the live app:**
-👉 [resumeiq.vercel.app](https://resumeiq.vercel.app)
+👉 [resumeiq-atsresumecompare.netlify.app](https://resumeiq-atsresumecompare.netlify.app/)
 
 **Option 2 — Run locally:**
 1. **[Download `index.html`](./index.html)**
