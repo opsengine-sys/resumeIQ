@@ -2110,8 +2110,8 @@
         <textarea id="jdInput"
           placeholder="Paste the full job description here…&#10;&#10;• Role title and team&#10;• Key responsibilities&#10;• Required skills &amp; tools&#10;• Years of experience&#10;• Education requirements"
           rows="5" style="flex: 1; min-height: 140px; resize: none; overflow-y: auto;" oninput="onJdChange()"></textarea>
-        <div id="jdHint" style="font-size: 10.5px; color: var(--ink3); margin-top: 6px; padding: 0 4px;">
-          💡 <strong>Tip:</strong> You can also paste <strong>any job link</strong> (LinkedIn, Indeed, Glassdoor, etc.) and click the fetch button.
+        <div id="jdHint" style="font-size: 11px; color: var(--ink3); margin-top: 10px; padding: 4px 8px; border-top: 1px solid var(--ink-bg); display: flex; align-items: center; gap: 8px;">
+          <span>💡 <strong>Tip:</strong> Paste any link and fetch, but <strong>manual copy-pasting</strong> is usually more accurate.</span>
         </div>
       </div>
       <div class="card">
@@ -2651,6 +2651,9 @@
         
         el.value = text;
         onJdChange();
+        
+        // Auto-trigger AI Cleanup after successful fetch
+        setTimeout(() => cleanJdWithAi(), 500);
       } catch (e) {
         alert('Error fetching link: ' + e.message + '\n\nNote: Some sites block direct access. You may need to copy-paste the text manually.');
       } finally {
@@ -2681,14 +2684,17 @@ CRITICAL INSTRUCTIONS:
 5. Return ONLY the cleaned job text. No intro or outro.
 
 RAW TEXT:
-${rawText.slice(0, 12000)}`;
+${rawText.slice(0, 8000)}`;
 
         // Always use Pollinations for cleanup to save user credits/rate limits
         const cleanText = await callOpenAICompat(prompt, 'https://text.pollinations.ai/openai/v1', 'openai');
+        if (!cleanText || cleanText.length < 50) throw new Error("Empty response from cleaning service.");
+        
         el.value = cleanText.trim();
         onJdChange();
       } catch (e) {
-        alert('AI Cleanup failed: ' + e.message + '\n\nNote: If this persists, you can still copy-paste manually.');
+        console.warn('Auto-Cleanup failed:', e.message);
+        // We don't alert here because it's an auto-action; the raw text is already there.
       } finally {
         btn.disabled = false;
         btn.innerHTML = originalText;
