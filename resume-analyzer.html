@@ -1,0 +1,3218 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>ResumeIQ — Resume Compatibility Analyzer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <style>
+    :root {
+      --bg: #f5f2ec;
+      --bg2: #edeae2;
+      --surface: #fff;
+      --surface2: #f9f7f3;
+      --border: #ddd9d0;
+      --border2: #c9c4b8;
+      --ink: #1a1814;
+      --ink2: #5a5650;
+      --ink3: #9a9590;
+      --accent: #c0392b;
+      --accent2: #e74c3c;
+      --accent-bg: #fdf0ee;
+      --gold: #b8860b;
+      --gold-bg: #fefae8;
+      --green: #27704a;
+      --green-bg: #eaf5ee;
+      --blue: #1a5f8a;
+      --blue-bg: #e8f2fa;
+      --purple: #6b21a8;
+      --purple-bg: #f5f0ff;
+      --shadow: 0 1px 3px rgba(0, 0, 0, .06), 0 4px 16px rgba(0, 0, 0, .06);
+      --shadow-lg: 0 2px 8px rgba(0, 0, 0, .08), 0 16px 48px rgba(0, 0, 0, .1);
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    html {
+      scroll-behavior: smooth
+    }
+
+    /* Custom Scrollbar to prevent square edges on rounded boxes */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border2);
+      border-radius: 6px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--ink3);
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      font-size: 14px;
+      line-height: 1.6
+    }
+
+    /* TOPBAR */
+    .topbar {
+      background: var(--ink);
+      color: #f5f2ec;
+      padding: 0 28px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, .25)
+    }
+
+    .topbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Playfair Display', serif;
+      font-size: 19px;
+      font-weight: 700;
+      letter-spacing: -.3px;
+      white-space: nowrap
+    }
+
+    .logo-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--accent2);
+      border-radius: 50%;
+      flex-shrink: 0
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .topbar-btn {
+      background: rgba(255, 255, 255, .09);
+      border: 1px solid rgba(255, 255, 255, .13);
+      color: #f5f2ec;
+      padding: 6px 13px;
+      border-radius: 6px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all .15s;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap
+    }
+
+    .topbar-btn:hover {
+      background: rgba(255, 255, 255, .17)
+    }
+
+    .provider-pill {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(255, 255, 255, .06);
+      border: 1px solid rgba(255, 255, 255, .1);
+      border-radius: 8px;
+      padding: 5px 12px;
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      color: #f5f2ec;
+      max-width: 240px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: background .15s
+    }
+
+    .provider-pill:hover {
+      background: rgba(255, 255, 255, .12)
+    }
+
+    .provider-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0
+    }
+
+    .provider-dot.set {
+      background: #6fcf8a
+    }
+
+    .provider-dot.unset {
+      background: #e07060
+    }
+
+    /* MAIN */
+    .main {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 36px 28px 60px
+    }
+
+    /* HERO */
+    .hero {
+      text-align: center;
+      padding: 40px 20px 32px;
+      max-width: 620px;
+      margin: 0 auto 40px;
+      animation: fadeUp .5s ease both
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-family: 'JetBrains Mono', monospace;
+      margin-bottom: 14px
+    }
+
+    .hero-eyebrow::before,
+    .hero-eyebrow::after {
+      content: '';
+      width: 22px;
+      height: 1px;
+      background: var(--accent);
+      opacity: .5
+    }
+
+    .hero h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 42px;
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -1px;
+      margin-bottom: 12px
+    }
+
+    .hero h1 em {
+      font-style: italic;
+      color: var(--accent)
+    }
+
+    .hero-sub {
+      color: var(--ink2);
+      font-size: 14.5px;
+      line-height: 1.7;
+      font-weight: 300
+    }
+
+    /* WORKFLOW */
+    .workflow {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 32px;
+      animation: fadeUp .5s .08s ease both
+    }
+
+    .workflow-step {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start
+    }
+
+    .step-num {
+      width: 28px;
+      height: 28px;
+      background: var(--ink);
+      color: #f5f2ec;
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      flex-shrink: 0
+    }
+
+    .step-text strong {
+      display: block;
+      font-size: 12.5px;
+      font-weight: 600;
+      margin-bottom: 2px
+    }
+
+    .step-text span {
+      font-size: 11px;
+      color: var(--ink3);
+      line-height: 1.5
+    }
+
+    /* FORM */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+      animation: fadeUp .5s .14s ease both
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden
+    }
+
+    .card-head {
+      padding: 11px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface2);
+      gap: 8px
+    }
+
+    .card-title {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1.8px;
+      text-transform: uppercase;
+      color: var(--ink3);
+      font-family: 'JetBrains Mono', monospace;
+      display: flex;
+      align-items: center;
+      gap: 7px
+    }
+
+    .card-title-icon {
+      width: 19px;
+      height: 19px;
+      background: var(--ink);
+      color: #f5f2ec;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      flex-shrink: 0
+    }
+
+    .card-head-right {
+      display: flex;
+      align-items: center;
+      gap: 5px
+    }
+
+    .card-badge {
+      font-size: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 2px 8px;
+      border-radius: 20px;
+      background: var(--accent-bg);
+      color: var(--accent);
+      font-weight: 500
+    }
+
+    .card-badge.green {
+      background: var(--green-bg);
+      color: var(--green)
+    }
+
+    .clear-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 3px 8px;
+      font-size: 10.5px;
+      color: var(--ink3);
+      cursor: pointer;
+      font-family: 'Outfit', sans-serif;
+      transition: all .15s;
+      display: flex;
+      align-items: center;
+      gap: 3px
+    }
+
+    .clear-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-bg)
+    }
+
+    textarea {
+      width: 100%;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--ink);
+      font-family: 'Outfit', sans-serif;
+      font-size: 13px;
+      line-height: 1.75;
+      padding: 14px 16px;
+      resize: none;
+      min-height: 250px
+    }
+
+    textarea::placeholder {
+      color: var(--ink3)
+    }
+
+    /* DROP ZONE */
+    .drop-zone-wrap {
+      padding: 12px 16px;
+      min-height: 250px;
+      display: flex;
+      flex-direction: column;
+      gap: 9px
+    }
+
+    .drop-zone {
+      border: 2px dashed var(--border2);
+      border-radius: var(--radius-sm);
+      padding: 22px 14px;
+      text-align: center;
+      cursor: pointer;
+      transition: all .2s;
+      background: var(--surface2)
+    }
+
+    .drop-zone:hover,
+    .drop-zone.dragging {
+      border-color: var(--accent);
+      background: var(--accent-bg)
+    }
+
+    .dz-icon {
+      width: 38px;
+      height: 38px;
+      margin: 0 auto 8px;
+      background: var(--bg2);
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px
+    }
+
+    .drop-zone:hover .dz-icon {
+      background: var(--accent-bg)
+    }
+
+    .dz-title {
+      font-weight: 600;
+      font-size: 12.5px;
+      margin-bottom: 2px
+    }
+
+    .dz-sub {
+      font-size: 11px;
+      color: var(--ink3)
+    }
+
+    .dz-types {
+      display: flex;
+      gap: 4px;
+      justify-content: center;
+      margin-top: 7px;
+      flex-wrap: wrap
+    }
+
+    .type-badge {
+      font-size: 9px;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 2px 6px;
+      border-radius: 3px;
+      background: var(--bg2);
+      color: var(--ink2);
+      border: 1px solid var(--border)
+    }
+
+    .file-list {
+      display: flex;
+      flex-direction: column;
+      gap: 5px
+    }
+
+    .file-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 8px 10px;
+      animation: slideIn .18s ease
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(4px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    .fi-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      flex-shrink: 0
+    }
+
+    .fi-pdf {
+      background: var(--accent-bg)
+    }
+
+    .fi-txt,
+    .fi-doc {
+      background: var(--blue-bg)
+    }
+
+    .fi-other {
+      background: var(--bg2)
+    }
+
+    .fi-info {
+      flex: 1;
+      min-width: 0
+    }
+
+    .fi-name {
+      font-weight: 500;
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis
+    }
+
+    .fi-meta {
+      font-size: 10px;
+      color: var(--ink3);
+      font-family: 'JetBrains Mono', monospace
+    }
+
+    .fi-status {
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 20px;
+      font-weight: 500;
+      white-space: nowrap;
+      flex-shrink: 0
+    }
+
+    .s-pending {
+      background: var(--bg2);
+      color: var(--ink3)
+    }
+
+    .s-parsing {
+      background: var(--gold-bg);
+      color: var(--gold)
+    }
+
+    .s-ready {
+      background: var(--green-bg);
+      color: var(--green)
+    }
+
+    .s-analyzing {
+      background: var(--blue-bg);
+      color: var(--blue)
+    }
+
+    .s-done {
+      background: var(--green-bg);
+      color: var(--green)
+    }
+
+    .s-error {
+      background: var(--accent-bg);
+      color: var(--accent)
+    }
+
+    .fi-del {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--ink3);
+      font-size: 16px;
+      line-height: 1;
+      padding: 2px 3px;
+      border-radius: 4px;
+      flex-shrink: 0;
+      transition: color .15s
+    }
+
+    .fi-del:hover {
+      color: var(--accent)
+    }
+
+    /* ANALYZE ROW */
+    .analyze-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      animation: fadeUp .5s .2s ease both
+    }
+
+    .analyze-info {
+      font-size: 12px;
+      color: var(--ink3)
+    }
+
+    .analyze-info strong {
+      color: var(--ink2)
+    }
+
+    /* BUTTONS */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 17px;
+      border-radius: 8px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all .15s;
+      white-space: nowrap
+    }
+
+    .btn-primary {
+      background: var(--ink);
+      color: #f5f2ec
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: #2d2a24;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, .15)
+    }
+
+    .btn-secondary {
+      background: var(--surface2);
+      color: var(--ink2);
+      border: 1px solid var(--border)
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      border-color: var(--border2);
+      color: var(--ink)
+    }
+
+    .btn-accent {
+      background: var(--accent);
+      color: white
+    }
+
+    .btn-accent:hover:not(:disabled) {
+      background: var(--accent2);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(192, 57, 43, .3)
+    }
+
+    .btn-ghost {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--ink2)
+    }
+
+    .btn-ghost:hover:not(:disabled) {
+      border-color: var(--border2);
+      background: var(--surface2)
+    }
+
+    .btn:disabled {
+      opacity: .4;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none !important
+    }
+
+    .btn-lg {
+      padding: 12px 24px;
+      font-size: 14px;
+      border-radius: 10px
+    }
+
+    /* ERROR */
+    .error-banner {
+      background: var(--accent-bg);
+      border: 1px solid rgba(192, 57, 43, .2);
+      border-radius: var(--radius-sm);
+      padding: 11px 14px;
+      color: var(--accent);
+      font-size: 12.5px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      line-height: 1.5
+    }
+
+    /* PROGRESS */
+    .progress-bar-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+      animation: fadeUp .3s ease
+    }
+
+    .progress-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px
+    }
+
+    .progress-title {
+      font-weight: 600;
+      font-size: 13px
+    }
+
+    .progress-pct {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--accent);
+      font-weight: 500
+    }
+
+    .progress-track {
+      height: 5px;
+      background: var(--bg2);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 7px
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      border-radius: 3px;
+      transition: width .4s ease
+    }
+
+    .progress-msg {
+      font-size: 11px;
+      color: var(--ink3);
+      font-family: 'JetBrains Mono', monospace
+    }
+
+    /* RESULTS */
+    .results-section {
+      animation: fadeUp .4s ease
+    }
+
+    .results-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      gap: 10px;
+      flex-wrap: wrap
+    }
+
+    .results-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -.5px
+    }
+
+    .results-meta {
+      color: var(--ink3);
+      font-size: 11.5px;
+      margin-top: 2px
+    }
+
+    .results-controls {
+      display: flex;
+      gap: 7px;
+      align-items: center;
+      flex-wrap: wrap
+    }
+
+    .view-toggle {
+      display: flex;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      overflow: hidden
+    }
+
+    .view-btn {
+      padding: 6px 12px;
+      font-size: 11.5px;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: var(--ink3);
+      transition: all .15s;
+      display: flex;
+      align-items: center;
+      gap: 4px
+    }
+
+    .view-btn.active {
+      background: var(--ink);
+      color: #f5f2ec
+    }
+
+    .sort-select {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 10px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 11.5px;
+      color: var(--ink2);
+      outline: none;
+      cursor: pointer
+    }
+
+    /* CAROUSEL */
+    .carousel-container {
+      margin-bottom: 16px
+    }
+
+    .carousel-track-wrap {
+      overflow: hidden
+    }
+
+    .carousel-track {
+      display: flex;
+      gap: 16px;
+      transition: transform .4s cubic-bezier(.16, 1, .3, 1)
+    }
+
+    .carousel-slide {
+      flex: 0 0 calc(33.333% - 11px);
+      min-width: 0
+    }
+
+    .carousel-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 14px
+    }
+
+    .carousel-arrows {
+      display: flex;
+      gap: 7px
+    }
+
+    .carousel-arrow {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all .15s;
+      font-size: 15px;
+      color: var(--ink2)
+    }
+
+    .carousel-arrow:hover:not(:disabled) {
+      background: var(--ink);
+      color: #f5f2ec;
+      border-color: var(--ink)
+    }
+
+    .carousel-arrow:disabled {
+      opacity: .3;
+      cursor: not-allowed
+    }
+
+    .carousel-dots {
+      display: flex;
+      gap: 5px;
+      align-items: center
+    }
+
+    .carousel-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--border2);
+      cursor: pointer;
+      transition: all .2s
+    }
+
+    .carousel-dot.active {
+      background: var(--ink);
+      width: 18px;
+      border-radius: 3px
+    }
+
+    .carousel-counter {
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--ink3)
+    }
+
+    /* RESULT CARD */
+    .result-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      transition: box-shadow .2s, transform .2s;
+      cursor: pointer;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      height: 100%
+    }
+
+    .result-card:hover {
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-2px)
+    }
+
+    .result-card.rank-1 {
+      border-color: rgba(184, 134, 11, .5)
+    }
+
+    .result-card.rank-2 {
+      border-color: rgba(138, 138, 138, .4)
+    }
+
+    .result-card.rank-3 {
+      border-color: rgba(184, 115, 51, .4)
+    }
+
+    .rank-ribbon {
+      position: absolute;
+      top: 0;
+      left: 0;
+      color: white;
+      font-size: 9px;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 3px 9px 3px 10px;
+      border-radius: 0 0 8px 0;
+      letter-spacing: .5px;
+      z-index: 1
+    }
+
+    .rr-gold {
+      background: var(--gold)
+    }
+
+    .rr-silver {
+      background: #888
+    }
+
+    .rr-bronze {
+      background: #b87333
+    }
+
+    .card-score-area {
+      padding: 28px 16px 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      background: linear-gradient(160deg, var(--surface2) 0%, var(--surface) 60%);
+      border-bottom: 1px solid var(--border)
+    }
+
+    .score-donut-wrap {
+      position: relative;
+      width: 80px;
+      height: 80px;
+      margin-bottom: 9px
+    }
+
+    .score-donut-wrap svg {
+      transform: rotate(-90deg)
+    }
+
+    .score-donut-text {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Playfair Display', serif
+    }
+
+    .score-donut-num {
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 1
+    }
+
+    .score-donut-lbl {
+      font-size: 9px;
+      color: var(--ink3);
+      font-family: 'Outfit', sans-serif
+    }
+
+    .card-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 14.5px;
+      font-weight: 600;
+      margin-bottom: 2px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      padding: 0 4px;
+      max-width: 100%
+    }
+
+    .card-file {
+      font-size: 10px;
+      color: var(--ink3);
+      font-family: 'JetBrains Mono', monospace;
+      margin-bottom: 7px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      padding: 0 4px;
+      max-width: 100%
+    }
+
+    .verdict-chip {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 20px
+    }
+
+    .verdict-strong {
+      background: var(--green-bg);
+      color: var(--green)
+    }
+
+    .verdict-good {
+      background: var(--gold-bg);
+      color: var(--gold)
+    }
+
+    .verdict-weak {
+      background: var(--accent-bg);
+      color: var(--accent)
+    }
+
+    .card-details {
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex: 1
+    }
+
+    .detail-label {
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--ink3);
+      font-family: 'JetBrains Mono', monospace;
+      margin-bottom: 5px
+    }
+
+    .mini-bars {
+      display: flex;
+      flex-direction: column;
+      gap: 4px
+    }
+
+    .mini-bar-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10.5px
+    }
+
+    .mini-bar-lbl {
+      color: var(--ink2);
+      width: 65px;
+      flex-shrink: 0
+    }
+
+    .mini-bar-track {
+      flex: 1;
+      height: 4px;
+      background: var(--bg2);
+      border-radius: 2px;
+      overflow: hidden
+    }
+
+    .mini-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 1s cubic-bezier(.16, 1, .3, 1) .2s
+    }
+
+    .mini-bar-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9.5px;
+      color: var(--ink3);
+      width: 20px;
+      text-align: right
+    }
+
+    .skill-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3px
+    }
+
+    .skill-chip {
+      font-size: 9.5px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace
+    }
+
+    .sc-match {
+      background: var(--green-bg);
+      color: var(--green)
+    }
+
+    .sc-missing {
+      background: var(--accent-bg);
+      color: var(--accent)
+    }
+
+    .card-summary {
+      font-size: 11px;
+      color: var(--ink2);
+      line-height: 1.55
+    }
+
+    .card-hint {
+      font-size: 9.5px;
+      color: var(--ink3);
+      text-align: center;
+      padding: 7px;
+      border-top: 1px solid var(--border);
+      background: var(--surface2);
+      margin-top: auto
+    }
+
+    /* TABLE */
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 16px
+    }
+
+    .results-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--surface);
+      font-size: 12.5px
+    }
+
+    .results-table thead {
+      background: var(--ink);
+      color: #f5f2ec
+    }
+
+    .results-table th {
+      padding: 11px 13px;
+      text-align: left;
+      font-size: 9.5px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      font-family: 'JetBrains Mono', monospace;
+      white-space: nowrap
+    }
+
+    .results-table tbody tr {
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background .12s
+    }
+
+    .results-table tbody tr:hover {
+      background: var(--surface2)
+    }
+
+    .results-table td {
+      padding: 11px 13px;
+      vertical-align: middle
+    }
+
+    .tbl-rank {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--ink3)
+    }
+
+    .tbl-name {
+      font-weight: 600;
+      font-size: 13px
+    }
+
+    .tbl-role {
+      font-size: 11px;
+      color: var(--ink3)
+    }
+
+    .tbl-score {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      font-family: 'Playfair Display', serif;
+      font-size: 14px;
+      font-weight: 700;
+      border: 2.5px solid
+    }
+
+    .tbl-bar-wrap {
+      min-width: 100px
+    }
+
+    .tbl-bar-label {
+      font-size: 10px;
+      color: var(--ink3);
+      font-family: 'JetBrains Mono', monospace
+    }
+
+    .tbl-bar {
+      height: 5px;
+      background: var(--bg2);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 2px
+    }
+
+    .tbl-bar-fill {
+      height: 100%;
+      border-radius: 3px
+    }
+
+    .tbl-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3px;
+      max-width: 180px
+    }
+
+    /* RECOMMENDATIONS PANEL */
+    .reco-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 22px;
+      margin-top: 20px
+    }
+
+    .reco-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 18px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border)
+    }
+
+    .reco-header-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--ink);
+      color: #f5f2ec;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      flex-shrink: 0
+    }
+
+    .reco-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      font-weight: 700
+    }
+
+    .reco-sub {
+      font-size: 11.5px;
+      color: var(--ink3);
+      margin-top: 1px
+    }
+
+    .reco-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 14px
+    }
+
+    .reco-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      position: relative
+    }
+
+    .reco-rank {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--ink3)
+    }
+
+    .reco-name {
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 2px;
+      font-family: 'Playfair Display', serif
+    }
+
+    .reco-role {
+      font-size: 11px;
+      color: var(--ink3);
+      margin-bottom: 8px
+    }
+
+    .reco-score-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px
+    }
+
+    .reco-score-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      font-weight: 700;
+      line-height: 1
+    }
+
+    .reco-action-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 2px 9px;
+      border-radius: 20px
+    }
+
+    .reco-action-hire {
+      background: var(--green-bg);
+      color: var(--green)
+    }
+
+    .reco-action-consider {
+      background: var(--gold-bg);
+      color: var(--gold)
+    }
+
+    .reco-action-pass {
+      background: var(--accent-bg);
+      color: var(--accent)
+    }
+
+    .reco-text {
+      font-size: 12px;
+      color: var(--ink2);
+      line-height: 1.6
+    }
+
+    .reco-strengths {
+      margin-top: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3px
+    }
+
+    .reco-summary-section {
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border)
+    }
+
+    .reco-summary-title {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--ink3);
+      font-family: 'JetBrains Mono', monospace;
+      margin-bottom: 10px
+    }
+
+    .reco-summary-text {
+      font-size: 13px;
+      color: var(--ink2);
+      line-height: 1.7;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px
+    }
+
+    /* EXPORT */
+    .export-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+      box-shadow: var(--shadow)
+    }
+
+    .export-info strong {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 2px
+    }
+
+    .export-info span {
+      font-size: 11px;
+      color: var(--ink3)
+    }
+
+    .export-actions {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap
+    }
+
+    /* MODAL */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(26, 24, 20, .65);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(4px);
+      animation: fadeIn .2s ease
+    }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 26px;
+      width: 560px;
+      max-width: 95vw;
+      box-shadow: var(--shadow-lg);
+      animation: scaleIn .25s cubic-bezier(.34, 1.56, .64, 1) both;
+      max-height: 92vh;
+      overflow-y: auto
+    }
+
+    @keyframes scaleIn {
+      from {
+        opacity: 0;
+        transform: scale(.92)
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1)
+      }
+    }
+
+    .modal-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      margin-bottom: 4px
+    }
+
+    .modal-sub {
+      color: var(--ink2);
+      font-size: 12px;
+      margin-bottom: 18px;
+      line-height: 1.6
+    }
+
+    /* Provider cards in modal */
+    .provider-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 16px;
+      max-height: 340px;
+      overflow-y: auto;
+      padding-right: 4px
+    }
+
+    .provider-card {
+      border: 2px solid var(--border);
+      border-radius: 9px;
+      padding: 10px 13px;
+      cursor: pointer;
+      transition: all .15s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0
+    }
+
+    .provider-card:hover {
+      border-color: var(--border2);
+      background: var(--surface2)
+    }
+
+    .provider-card.selected {
+      border-color: var(--ink);
+      background: var(--surface2)
+    }
+
+    .prov-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      flex-shrink: 0
+    }
+
+    .prov-body {
+      flex: 1;
+      min-width: 0
+    }
+
+    .prov-name {
+      font-weight: 600;
+      font-size: 12.5px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-bottom: 1px
+    }
+
+    .prov-desc {
+      font-size: 10.5px;
+      color: var(--ink3);
+      line-height: 1.4
+    }
+
+    .prov-meta {
+      font-size: 9.5px;
+      color: var(--ink3);
+      font-family: 'JetBrains Mono', monospace;
+      margin-top: 2px
+    }
+
+    .free-badge {
+      font-size: 8.5px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 20px;
+      background: var(--green-bg);
+      color: var(--green);
+      letter-spacing: .5px
+    }
+
+    .prov-check {
+      color: var(--green);
+      font-size: 16px;
+      flex-shrink: 0
+    }
+
+    .modal-field {
+      margin-bottom: 11px
+    }
+
+    .modal-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ink2);
+      margin-bottom: 5px;
+      display: block
+    }
+
+    .modal-input {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 10px 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--ink);
+      outline: none;
+      transition: border-color .15s
+    }
+
+    .modal-input:focus {
+      border-color: var(--accent)
+    }
+
+    .modal-hint {
+      font-size: 10.5px;
+      color: var(--ink3);
+      margin-top: 5px;
+      line-height: 1.5
+    }
+
+    .modal-hint a {
+      color: var(--blue);
+      text-decoration: none
+    }
+
+    .modal-hint a:hover {
+      text-decoration: underline
+    }
+
+    .modal-hint code {
+      background: var(--bg2);
+      padding: 1px 4px;
+      border-radius: 3px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-top: 16px
+    }
+
+    .custom-url-field {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 11px
+    }
+
+    /* DRAWER */
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(26, 24, 20, .5);
+      z-index: 150;
+      backdrop-filter: blur(3px);
+      animation: fadeIn .2s ease
+    }
+
+    .drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 520px;
+      max-width: 96vw;
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      z-index: 160;
+      overflow-y: auto;
+      box-shadow: -8px 0 40px rgba(0, 0, 0, .12);
+      animation: slideFromRight .3s cubic-bezier(.16, 1, .3, 1) both
+    }
+
+    @keyframes slideFromRight {
+      from {
+        transform: translateX(100%)
+      }
+
+      to {
+        transform: translateX(0)
+      }
+    }
+
+    .drawer-head {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: var(--surface);
+      z-index: 1;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px
+    }
+
+    .drawer-close {
+      margin-left: auto;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 17px;
+      color: var(--ink2);
+      flex-shrink: 0;
+      transition: all .15s
+    }
+
+    .drawer-close:hover {
+      background: var(--accent-bg);
+      color: var(--accent)
+    }
+
+    .drawer-body {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px
+    }
+
+    .drawer-section-title {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--ink3);
+      font-family: 'JetBrains Mono', monospace;
+      margin-bottom: 10px;
+      padding-bottom: 7px;
+      border-bottom: 1px solid var(--border)
+    }
+
+    .score-breakdown-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px
+    }
+
+    .score-breakdown-item {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 12px;
+      text-align: center
+    }
+
+    .sbi-label {
+      font-size: 10px;
+      color: var(--ink3);
+      margin-bottom: 4px
+    }
+
+    .sbi-score {
+      font-family: 'Playfair Display', serif;
+      font-size: 24px;
+      font-weight: 700
+    }
+
+    .strengths-list,
+    .concerns-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px
+    }
+
+    .strength-item,
+    .concern-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 12.5px;
+      line-height: 1.5
+    }
+
+    .strength-dot {
+      width: 5px;
+      height: 5px;
+      background: var(--green);
+      border-radius: 50%;
+      margin-top: 5px;
+      flex-shrink: 0
+    }
+
+    .concern-dot {
+      width: 5px;
+      height: 5px;
+      background: var(--accent);
+      border-radius: 50%;
+      margin-top: 5px;
+      flex-shrink: 0
+    }
+
+    .recommendation-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 13px;
+      font-size: 12.5px;
+      line-height: 1.7;
+      color: var(--ink2)
+    }
+
+    /* FOOTER */
+    .footer {
+      text-align: center;
+      padding: 28px 24px 20px;
+      color: var(--ink3);
+      font-size: 11px;
+      border-top: 1px solid var(--border);
+      margin-top: 48px
+    }
+
+    .footer a {
+      color: var(--blue);
+      text-decoration: none
+    }
+
+    .footer a:hover {
+      text-decoration: underline
+    }
+
+    /* ANIMATIONS */
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(10px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0
+      }
+
+      to {
+        opacity: 1
+      }
+    }
+
+    .spinner {
+      width: 13px;
+      height: 13px;
+      border: 2px solid rgba(255, 255, 255, .25);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      flex-shrink: 0
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg)
+      }
+    }
+
+    /* PRINT STYLES */
+    @media print {
+      * {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact
+      }
+
+      .topbar,
+      .workflow,
+      .form-grid,
+      .analyze-row,
+      .progress-bar-wrap,
+      .error-banner,
+      .carousel-nav,
+      .results-controls,
+      .export-panel,
+      .footer,
+      .card-hint,
+      .drawer-overlay,
+      .drawer,
+      .modal-overlay {
+        display: none !important
+      }
+
+      body {
+        background: white;
+        font-size: 11px;
+        color: #1a1814
+      }
+
+      .main {
+        padding: 0;
+        max-width: 100%
+      }
+
+      .results-section,
+      .reco-panel {
+        display: block !important
+      }
+
+      .carousel-track {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 10px;
+        transform: none !important;
+        overflow: visible !important
+      }
+
+      .carousel-track-wrap {
+        overflow: visible !important
+      }
+
+      .carousel-slide {
+        flex: none !important;
+        break-inside: avoid;
+        page-break-inside: avoid
+      }
+
+      .result-card {
+        box-shadow: none !important;
+        border: 1px solid #ccc !important;
+        break-inside: avoid
+      }
+
+      .print-report-header {
+        display: block !important
+      }
+
+      .reco-grid {
+        grid-template-columns: 1fr 1fr
+      }
+
+      .table-wrap {
+        box-shadow: none !important;
+        border: 1px solid #ccc
+      }
+
+      h2,
+      h3 {
+        page-break-after: avoid
+      }
+    }
+
+    .print-report-header {
+      display: none
+    }
+
+    /* RESPONSIVE */
+    @media(max-width:900px) {
+      .main {
+        padding: 20px 14px 50px
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr
+      }
+
+      .workflow {
+        grid-template-columns: 1fr;
+        gap: 7px
+      }
+
+      .hero h1 {
+        font-size: 28px
+      }
+
+      .topbar {
+        padding: 0 12px
+      }
+
+      .carousel-slide {
+        flex: 0 0 calc(50% - 8px)
+      }
+
+      .reco-grid {
+        grid-template-columns: 1fr
+      }
+    }
+
+    @media(max-width:580px) {
+      .carousel-slide {
+        flex: 0 0 100%
+      }
+
+      .hero {
+        padding: 18px 0 14px
+      }
+    }
+
+    input[type=file] {
+      display: none
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-brand">
+      <svg width="120" height="32" viewBox="0 0 600 160" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right:4px;">
+        <defs>
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@900&amp;display=swap');
+            .brand-text-nav { font-family: 'Playfair Display', serif; font-weight: 900; font-size: 120px; fill: #c9c4b8; letter-spacing: -3px; }
+            .accent-iq { fill: #9e3427; }
+          </style>
+        </defs>
+        <text x="50%" y="50%" class="brand-text-nav" text-anchor="middle" dominant-baseline="middle">Resume<tspan class="accent-iq">iQ</tspan></text>
+      </svg>
+    </div>
+    <div class="topbar-actions">
+      <div class="provider-pill" onclick="openProviderModal()">
+        <span class="provider-dot unset" id="providerDot"></span>
+        <span id="providerPillText">Click to set AI Provider</span>
+      </div>
+      <button class="topbar-btn" onclick="openInstructionsModal()">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="16" x2="12" y2="12" />
+          <line x1="12" y1="8" x2="12.01" y2="8" />
+        </svg>
+        Instructions
+      </button>
+      <button class="topbar-btn" onclick="clearAll()">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="3 6 5 6 21 6" />
+          <path d="M19 6l-1 14H6L5 6" />
+        </svg>
+        Clear All
+      </button>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="hero">
+      <div class="hero-eyebrow">AI-Powered Hiring Tool</div>
+      <h1>Match the <em>Right Talent</em><br />to Every Role</h1>
+      <p class="hero-sub">Upload resumes in any format, paste a job description, and get AI-scored compatibility reports
+        with hiring recommendations — free with Groq, Gemini, NVIDIA, or 200+ OpenRouter models.</p>
+    </div>
+
+    <div class="workflow">
+      <div class="workflow-step">
+        <div class="step-num">01</div>
+        <div class="step-text"><strong>Choose AI Provider</strong><span>Pick any free provider — Groq, Gemini, NVIDIA
+            NIM, OpenRouter.</span></div>
+      </div>
+      <div class="workflow-step">
+        <div class="step-num">02</div>
+        <div class="step-text"><strong>Paste Job Description</strong><span>Include role, responsibilities, skills and
+            qualifications.</span></div>
+      </div>
+      <div class="workflow-step">
+        <div class="step-num">03</div>
+        <div class="step-text"><strong>Upload &amp; Analyze</strong><span>Drop PDFs or text files. Get ranked results
+            with recommendations.</span></div>
+      </div>
+    </div>
+
+    <!-- FORM -->
+    <div class="card" style="margin-bottom: 16px; animation: fadeUp .5s .10s ease both;">
+      <div class="card-head" style="padding: 12px 16px;">
+        <div class="card-title">
+          <div class="card-title-icon">👤</div>Recruiter Details <span
+            style="text-transform: none; font-family: 'Outfit', sans-serif; font-weight: 400; margin-left: 5px; color: var(--ink3); font-size: 11px;">(Optional)</span>
+        </div>
+      </div>
+      <div style="padding: 12px 16px; padding-top: 0;">
+        <input type="text" id="recruiterInput" placeholder="Your Name, Organization, etc. (e.g. Acme Corp Hiring Team)"
+          style="width: 100%; border: 1px solid var(--border); border-radius: 7px; padding: 10px 14px; font-family: 'Outfit', sans-serif; font-size: 13px; background: var(--surface2); color: var(--ink); outline: none; transition: border-color 0.15s;"
+          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
+          oninput="sessionStorage.setItem('recruiterDetails', this.value)" />
+      </div>
+    </div>
+    <div class="form-grid">
+      <div class="card" style="display: flex; flex-direction: column; height: 100%;">
+        <div class="card-head">
+          <div class="card-title">
+            <div class="card-title-icon">📋</div>Job Description
+          </div>
+          <div class="card-head-right">
+            <span id="jdBadge" class="card-badge" style="display:none"></span>
+            <button class="clear-btn" onclick="clearJD()">✕ Clear</button>
+          </div>
+        </div>
+        <textarea id="jdInput"
+          placeholder="Paste the full job description here…&#10;&#10;• Role title and team&#10;• Key responsibilities&#10;• Required skills &amp; tools&#10;• Years of experience&#10;• Education requirements"
+          rows="5" style="flex: 1; min-height: 140px; resize: none; overflow-y: auto;" oninput="onJdChange()"></textarea>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">
+            <div class="card-title-icon">👤</div>Resumes
+          </div>
+          <div class="card-head-right">
+            <span id="fileBadge" class="card-badge green" style="display:none"></span>
+            <button class="clear-btn" onclick="clearResumes()">✕ Clear</button>
+          </div>
+        </div>
+        <div class="drop-zone-wrap">
+          <div class="drop-zone" id="dropZone" ondragover="event.preventDefault();this.classList.add('dragging')"
+            ondragleave="this.classList.remove('dragging')" ondrop="handleDrop(event)"
+            onclick="document.getElementById('fileInput').click()">
+            <div class="dz-icon">📂</div>
+            <div class="dz-title">Drop resume files here</div>
+            <div class="dz-sub">or click to browse</div>
+            <div class="dz-types">
+              <span class="type-badge">PDF</span><span class="type-badge">TXT</span>
+              <span class="type-badge">DOC</span><span class="type-badge">DOCX</span><span class="type-badge">RTF</span>
+            </div>
+          </div>
+          <div class="file-list" id="fileList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ANALYZE ROW -->
+    <div class="analyze-row">
+      <div class="analyze-info"><span id="analyzeHint">Click <strong>AI Provider</strong> to get started.</span></div>
+      <button class="btn btn-accent btn-lg" id="analyzeBtn" onclick="runAnalysis()" disabled>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.35-4.35" />
+        </svg>
+        Analyze Resumes
+      </button>
+    </div>
+
+    <div id="errorBanner" class="error-banner" style="display:none"></div>
+    <div id="progressWrap" class="progress-bar-wrap" style="display:none">
+      <div class="progress-header"><span class="progress-title">Analyzing Resumes…</span><span class="progress-pct"
+          id="progressPct">0%</span></div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill" style="width:0%"></div>
+      </div>
+      <div class="progress-msg" id="progressMsg">Preparing…</div>
+    </div>
+
+    <!-- RESULTS -->
+    <div id="resultsSection" class="results-section" style="display:none">
+      <div class="print-report-header">
+        <h2 style="font-family:'Playfair Display',serif;font-size:24px;margin-bottom:4px">ResumeIQ — Hiring Analysis
+          Report</h2>
+        <p id="printMeta" style="font-size:11px;color:#666;margin-bottom:24px"></p>
+      </div>
+
+      <div class="results-topbar">
+        <div>
+          <div class="results-title">Candidate Rankings</div>
+          <div class="results-meta" id="resultsMeta"></div>
+        </div>
+        <div class="results-controls">
+          <select class="sort-select" id="sortSelect" onchange="renderResults()">
+            <option value="score">Sort: Score</option>
+            <option value="name">Sort: Name</option>
+            <option value="skills">Sort: Skills</option>
+            <option value="experience">Sort: Experience</option>
+          </select>
+          <div class="view-toggle">
+            <button class="view-btn active" id="btnCarousel" onclick="setView('carousel')">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="7" width="6" height="10" rx="1" />
+                <rect x="9" y="7" width="6" height="10" rx="1" />
+                <rect x="16" y="7" width="6" height="10" rx="1" />
+              </svg>Cards
+            </button>
+            <button class="view-btn" id="btnTable" onclick="setView('table')">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 3h18v18H3z" />
+                <path d="M3 9h18M3 15h18M9 3v18M15 3v18" />
+              </svg>Table
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div id="carouselView"></div>
+      <div id="tableView" style="display:none"></div>
+      <div id="recoPanel"></div>
+
+      <div class="export-panel">
+        <div class="export-info"><strong>Export Results</strong><span>Download a full hiring report with scores and
+            recommendations.</span></div>
+        <div class="export-actions">
+          <button class="btn btn-ghost" onclick="exportCSV()">⬇ CSV</button>
+          <button class="btn btn-ghost" onclick="exportJSON()">⬇ JSON</button>
+          <button class="btn btn-secondary" onclick="exportPDF()">🖨 Export PDF Report</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align: center; margin-top: 24px; font-size: 10px; color: var(--ink3); padding: 0 20px;">
+    <strong>Disclaimer:</strong> The analysis and scores are generated exclusively by the selected AI Provider. This
+    tool acts solely as an interface and does not manipulate or verify the AI's conclusions.<br>
+    <strong>Privacy:</strong> This tool runs entirely in your browser. Resumes are sent directly to your chosen AI provider and are not stored by us. Note that public AI tools may process data according to their own privacy policies.
+  </div>
+
+  <div class="footer">
+    ResumeIQ · Built by <strong><a href="https://github.com/opsengine-sys" target="_blank"
+        style="color:var(--ink);text-decoration:none">opsengine-sys</a></strong> · Powered by Groq, Gemini, NVIDIA NIM,
+    OpenRouter, OpenAI &amp;
+    Anthropic · API keys stored in session memory only
+  </div>
+
+  <!-- PROVIDER MODAL -->
+  <div id="providerModal" class="modal-overlay" style="display:none"
+    onclick="if(event.target===this)closeProviderModal()">
+    <div class="modal">
+      <div class="modal-title">Choose AI Provider</div>
+      <div class="modal-sub">Pick any free provider — Groq, Gemini, NVIDIA NIM, OpenRouter.</div>
+      <div class="provider-cards" id="providerCards"></div>
+
+      <div id="customUrlWrap" class="custom-url-field" style="display:none">
+        <div class="modal-field" style="margin-bottom:8px">
+          <label class="modal-label">Base URL <span style="color:var(--ink3);font-weight:400">(OpenAI-compatible
+              endpoint)</span></label>
+          <input type="text" class="modal-input" id="customUrlInput" placeholder="https://api.example.com/v1" />
+          <div class="modal-hint" id="customUrlHint"></div>
+        </div>
+        <div class="modal-field" style="margin-bottom:0">
+          <label class="modal-label">Model ID</label>
+          <input type="text" class="modal-input" id="customModelInput" placeholder="e.g. llama3.2 or gpt-4o-mini" />
+        </div>
+      </div>
+
+      <div class="modal-field">
+        <label class="modal-label">API Key</label>
+        <input type="password" class="modal-input" id="apiKeyInput" placeholder="Paste your API key…" />
+        <div class="modal-hint" id="apiKeyHint"></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeProviderModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveProvider()">Save &amp; Use</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- INSTRUCTIONS MODAL -->
+  <div id="instructionsModal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeInstructionsModal()">
+    <div class="modal">
+      <div class="modal-title">Get a Free API Key</div>
+      <div class="modal-sub">You don't need to be a developer. Pick a provider, create an account, and generate a key.</div>
+
+      <div class="provider-cards" style="max-height: 400px; gap: 10px; margin-bottom: 20px;">
+        <!-- Pollinations -->
+        <a href="javascript:void(0)" style="text-decoration:none; color:inherit;">
+          <div class="provider-card" style="align-items:flex-start; padding: 16px;">
+            <div class="prov-icon" style="background:#e83e8c22; color:#e83e8c; border-radius: 50%;">1</div>
+            <div class="prov-body">
+              <div class="prov-name">Free Public AI (Pollinations) <span class="card-badge" style="margin-left:6px; background:#e83e8c22; color:#e83e8c">Default</span></div>
+              <div class="prov-desc" style="margin-top:4px; font-size:11.5px;">No account needed! This is a public API endpoint. Just select it from the dropdown and you're good to go. Limit: 10 resumes.</div>
+            </div>
+          </div>
+        </a>
+
+        <!-- Google Gemini -->
+        <a href="https://aistudio.google.com/app/apikey" target="_blank" style="text-decoration:none; color:inherit;">
+          <div class="provider-card" style="align-items:flex-start; padding: 16px;">
+            <div class="prov-icon" style="background:#4285f422; color:#4285f4; border-radius: 50%;">2</div>
+            <div class="prov-body">
+              <div class="prov-name">Google Gemini <span class="card-badge" style="margin-left:6px; background:#4285f422; color:#4285f4">Recommended</span></div>
+              <div class="prov-desc" style="margin-top:4px; font-size:11.5px;">Click here to visit Google AI Studio. Sign in and click <strong>"Create API key"</strong>. Copy the key starting with <code>AIzaSy...</code> and paste it in our AI Provider settings.</div>
+            </div>
+            <div style="color:var(--blue); font-size:16px;">↗</div>
+          </div>
+        </a>
+
+        <!-- Groq -->
+        <a href="https://console.groq.com/keys" target="_blank" style="text-decoration:none; color:inherit;">
+          <div class="provider-card" style="align-items:flex-start; padding: 16px;">
+            <div class="prov-icon" style="background:#f9731622; color:#f97316; border-radius: 50%;">3</div>
+            <div class="prov-body">
+              <div class="prov-name">Groq <span class="card-badge" style="margin-left:6px; background:#f9731622; color:#f97316">Fastest</span></div>
+              <div class="prov-desc" style="margin-top:4px; font-size:11.5px;">Click here to visit Groq Console. Sign up, click <strong>"Create API Key"</strong>, and paste the key (starts with <code>gsk_...</code>) in our settings.</div>
+            </div>
+            <div style="color:var(--blue); font-size:16px;">↗</div>
+          </div>
+        </a>
+
+        <!-- NVIDIA NIM -->
+        <a href="https://build.nvidia.com" target="_blank" style="text-decoration:none; color:inherit;">
+          <div class="provider-card" style="align-items:flex-start; padding: 16px;">
+            <div class="prov-icon" style="background:#76b90022; color:#76b900; border-radius: 50%;">4</div>
+            <div class="prov-body">
+              <div class="prov-name">NVIDIA NIM</div>
+              <div class="prov-desc" style="margin-top:4px; font-size:11.5px;">Click here to visit NVIDIA NIM. Sign up for free API credits, click <strong>"Get API Key"</strong>, and paste the key in our settings.</div>
+            </div>
+            <div style="color:var(--blue); font-size:16px;">↗</div>
+          </div>
+        </a>
+
+        <!-- OpenRouter -->
+        <a href="https://openrouter.ai/keys" target="_blank" style="text-decoration:none; color:inherit;">
+          <div class="provider-card" style="align-items:flex-start; padding: 16px;">
+            <div class="prov-icon" style="background:#6366f122; color:#6366f1; border-radius: 50%;">5</div>
+            <div class="prov-body">
+              <div class="prov-name">OpenRouter</div>
+              <div class="prov-desc" style="margin-top:4px; font-size:11.5px;">Click here to visit OpenRouter. Sign up, click <strong>"Create Key"</strong>, and paste the key (starts with <code>sk-or-...</code>) in our settings.</div>
+            </div>
+            <div style="color:var(--blue); font-size:16px;">↗</div>
+          </div>
+        </a>
+
+        <!-- Together AI -->
+        <a href="https://api.together.ai" target="_blank" style="text-decoration:none; color:inherit;">
+          <div class="provider-card" style="align-items:flex-start; padding: 16px;">
+            <div class="prov-icon" style="background:#0ea5e922; color:#0ea5e9; border-radius: 50%;">6</div>
+            <div class="prov-body">
+              <div class="prov-name">Together AI</div>
+              <div class="prov-desc" style="margin-top:4px; font-size:11.5px;">Click here to visit Together AI. Sign up for $1 free credit, click <strong>"API Keys"</strong>, and paste the key in our settings.</div>
+            </div>
+            <div style="color:var(--blue); font-size:16px;">↗</div>
+          </div>
+        </a>
+      </div>
+      <div class="modal-actions" style="margin-top:0">
+        <button class="btn btn-primary" onclick="closeInstructionsModal()">Got it</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DRAWER -->
+  <div id="drawerOverlay" class="drawer-overlay" style="display:none" onclick="closeDrawer()"></div>
+  <div id="drawer" class="drawer" style="display:none"></div>
+  <input type="file" id="fileInput" multiple accept=".pdf,.txt,.doc,.docx,.rtf,.md" onchange="handleFileInput(event)" />
+
+  <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    // ── PROVIDERS ─────────────────────────────────────────────────
+    // Each provider has a single recommended free model pre-selected.
+    // Users paste their key and go — no model dropdown confusion.
+    const PROVIDERS = [
+      {
+        id: 'pollinations', name: 'Free Public AI', icon: 'P', iconBg: '#e83e8c', free: true, noKey: true, type: 'openai-compat',
+        baseUrl: 'https://text.pollinations.ai/openai/v1',
+        model: 'openai',
+        desc: 'No API Key required. Works instantly.',
+        meta: 'Model: Fast Default · Free public API',
+        placeholder: 'No key needed!',
+        hint: 'This endpoint is completely free and requires no API key.',
+      },
+      {
+        id: 'groq', name: 'Groq', icon: 'G', iconBg: '#f97316', free: true, type: 'openai-compat',
+        baseUrl: 'https://api.groq.com/openai/v1',
+        model: 'llama-3.3-70b-versatile',
+        desc: 'Fastest free AI. Llama 3.3 70B.',
+        meta: 'Model: Llama 3.3 70B · Free tier',
+        placeholder: 'gsk_…',
+        hint: 'Get a free key → <a href="https://console.groq.com" target="_blank">console.groq.com</a> · No credit card required.',
+      },
+      {
+        id: 'gemini', name: 'Google Gemini', icon: '✦', iconBg: '#4285f4', free: true, type: 'gemini',
+        model: 'gemini-1.5-flash',
+        desc: 'Free with large context. Great for long resumes.',
+        meta: 'Model: Gemini 1.5 Flash · Free tier',
+        placeholder: 'AIzaSy…',
+        hint: 'Get a free key → <a href="https://aistudio.google.com" target="_blank">aistudio.google.com</a> · Key starts with <code>AIzaSy</code>',
+      },
+      {
+        id: 'nvidia', name: 'NVIDIA NIM', icon: 'N', iconBg: '#76b900', free: true, type: 'openai-compat',
+        baseUrl: 'https://integrate.api.nvidia.com/v1',
+        model: 'meta/llama-3.3-70b-instruct',
+        desc: 'Free NVIDIA-hosted Llama 3.3 70B via NIM.',
+        meta: 'Model: Llama 3.3 70B · Free API credits',
+        placeholder: 'nvapi-…',
+        hint: 'Get a free key → <a href="https://build.nvidia.com" target="_blank">build.nvidia.com</a> · Sign up for free API credits.',
+      },
+      {
+        id: 'openrouter', name: 'OpenRouter', icon: '⊕', iconBg: '#6366f1', free: true, type: 'openai-compat',
+        baseUrl: 'https://openrouter.ai/api/v1',
+        model: 'meta-llama/llama-3.3-70b-instruct:free',
+        desc: 'Robust 70B model. One key for everything.',
+        meta: 'Model: Llama 3.3 70B (free) · 200+ available',
+        placeholder: 'sk-or-…',
+        hint: 'Get a free key → <a href="https://openrouter.ai" target="_blank">openrouter.ai</a> · Many models have free tiers.',
+      },
+      {
+        id: 'together', name: 'Together AI', icon: 'T', iconBg: '#0ea5e9', free: true, type: 'openai-compat',
+        baseUrl: 'https://api.together.xyz/v1',
+        model: 'meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo',
+        desc: '$1 free credit on signup. Fast Llama 3.1 70B.',
+        meta: 'Model: Llama 3.1 70B Turbo · $1 free credit',
+        placeholder: '…',
+        hint: 'Get a key → <a href="https://api.together.ai" target="_blank">api.together.ai</a> · $1 free credit on signup.',
+      },
+      {
+        id: 'mistral', name: 'Mistral AI', icon: 'M', iconBg: '#ff7000', free: true, type: 'openai-compat',
+        baseUrl: 'https://api.mistral.ai/v1',
+        model: 'mistral-small-latest',
+        desc: 'Free trial available. Excellent European AI.',
+        meta: 'Model: Mistral Small · Free trial',
+        placeholder: '…',
+        hint: 'Get a key → <a href="https://console.mistral.ai" target="_blank">console.mistral.ai</a> · Free trial on signup.',
+      },
+      {
+        id: 'openai', name: 'OpenAI', icon: '⬡', iconBg: '#10a37f', free: false, type: 'openai-compat',
+        baseUrl: 'https://api.openai.com/v1',
+        model: 'gpt-4o-mini',
+        desc: 'GPT-4o mini. New accounts get $5 free credits.',
+        meta: 'Model: GPT-4o mini · Pay-as-you-go',
+        placeholder: 'sk-…',
+        hint: 'Get a key → <a href="https://platform.openai.com" target="_blank">platform.openai.com</a>',
+      },
+      {
+        id: 'anthropic', name: 'Anthropic Claude', icon: 'A', iconBg: '#c0392b', free: false, type: 'anthropic',
+        model: 'claude-sonnet-4-20250514',
+        desc: 'Claude Sonnet 4. Best analysis quality.',
+        meta: 'Model: Claude Sonnet 4 · Pay-as-you-go',
+        placeholder: 'sk-ant-…',
+        hint: 'Get a key → <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>',
+      },
+      {
+        id: 'custom', name: 'Custom / Self-hosted', icon: '⚙', iconBg: '#555', free: false, type: 'custom',
+        model: '',
+        desc: 'Any OpenAI-compatible endpoint (Ollama, LM Studio, etc.)',
+        meta: 'OpenAI-compatible API · Custom endpoint',
+        placeholder: 'your-api-key (or "none")',
+        hint: 'Paste your base URL and model ID below.',
+      },
+    ];
+
+    // ── STATE ─────────────────────────────────────────────────────
+    let selectedProviderId = 'pollinations';
+    let apiKey = '', customBaseUrl = '', customModelId = '';
+    let files = [], results = [], viewMode = 'carousel', carouselPage = 0;
+    const CARDS_PER_PAGE = 3;
+
+    const getProvider = () => PROVIDERS.find(p => p.id === selectedProviderId);
+
+    // ── PROVIDER MODAL ────────────────────────────────────────────
+    function openProviderModal() {
+      renderProviderCards();
+      updateModalHints();
+      document.getElementById('apiKeyInput').value = apiKey;
+      document.getElementById('providerModal').style.display = 'flex';
+    }
+    function closeProviderModal() { document.getElementById('providerModal').style.display = 'none'; }
+    function openInstructionsModal() { document.getElementById('instructionsModal').style.display = 'flex'; }
+    function closeInstructionsModal() { document.getElementById('instructionsModal').style.display = 'none'; }
+
+    function renderProviderCards() {
+      document.getElementById('providerCards').innerHTML = PROVIDERS.map(p => `
+    <div class="provider-card ${p.id === selectedProviderId ? 'selected' : ''}" onclick="selectProviderCard('${p.id}')">
+      <div class="prov-icon" style="background:${p.iconBg}22;color:${p.iconBg}">${p.icon}</div>
+      <div class="prov-body">
+        <div class="prov-name">${p.name}${p.free ? '<span class="free-badge">FREE</span>' : ''}</div>
+        <div class="prov-desc">${p.desc}</div>
+        <div class="prov-meta">${p.meta}</div>
+      </div>
+      ${p.id === selectedProviderId ? '<div class="prov-check">✓</div>' : ''}
+    </div>`).join('');
+    }
+
+    function selectProviderCard(id) {
+      selectedProviderId = id;
+      renderProviderCards();
+      updateModalHints();
+    }
+
+    function updateModalHints() {
+      const p = getProvider();
+      const isCustom = p.id === 'custom';
+      document.getElementById('customUrlWrap').style.display = isCustom ? 'block' : 'none';
+      document.getElementById('apiKeyInput').placeholder = p.placeholder;
+      document.getElementById('apiKeyHint').innerHTML = p.hint;
+      if (isCustom) {
+        document.getElementById('customUrlInput').value = customBaseUrl || 'http://localhost:11434/v1';
+        document.getElementById('customModelInput').value = customModelId || '';
+        document.getElementById('customUrlHint').innerHTML = 'e.g. <code>http://localhost:11434/v1</code> for Ollama or <code>http://localhost:1234/v1</code> for LM Studio';
+      }
+    }
+
+    function saveProvider() {
+      const key = document.getElementById('apiKeyInput').value.trim();
+      const p = getProvider();
+      if (!p.noKey && !key) { alert('Please enter an API key.'); return; }
+      if (p.id === 'custom') {
+        customBaseUrl = document.getElementById('customUrlInput').value.trim();
+        customModelId = document.getElementById('customModelInput').value.trim();
+        if (!customBaseUrl || !customModelId) { alert('Please enter both a base URL and model ID.'); return; }
+      }
+      apiKey = key;
+      document.getElementById('providerDot').className = 'provider-dot set';
+      document.getElementById('providerPillText').textContent = p.noKey ? `${p.name} · Free` : `${p.name} · ${p.id === 'custom' ? customModelId : p.model.split('/').pop().replace(':free', '')}`;
+      closeProviderModal();
+      updateAnalyzeBtn();
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const rDetails = sessionStorage.getItem('recruiterDetails');
+      if (rDetails) document.getElementById('recruiterInput').value = rDetails;
+      renderProviderCards();
+    });
+
+    // ── FILES ─────────────────────────────────────────────────────
+    function handleDrop(e) { e.preventDefault(); document.getElementById('dropZone').classList.remove('dragging'); addFiles(e.dataTransfer.files); }
+    function handleFileInput(e) { addFiles(e.target.files); e.target.value = ''; }
+
+    function addFiles(incoming) {
+      const allowed = ['pdf', 'txt', 'doc', 'docx', 'rtf', 'md'];
+      let arr = Array.from(incoming);
+      if (files.length + arr.length > 10) {
+        showError('You can only analyze up to 10 resumes at a time. The rest were ignored.');
+        arr = arr.slice(0, Math.max(0, 10 - files.length));
+      }
+      arr.forEach(f => {
+        const ext = f.name.split('.').pop().toLowerCase();
+        if (!allowed.includes(ext)) { showError(`Unsupported file type: ${f.name}`); return; }
+        if (files.find(x => x.name === f.name)) return;
+        const entry = { file: f, name: f.name, ext, text: '', status: 'pending' };
+        files.push(entry);
+        parseFile(entry);
+      });
+      renderFileList(); updateAnalyzeBtn();
+    }
+
+    async function parseFile(entry) {
+      entry.status = 'parsing'; renderFileList();
+      try {
+        entry.text = entry.ext === 'pdf' ? await parsePDF(entry.file) : await readText(entry.file);
+        entry.status = 'ready';
+      } catch (e) { entry.status = 'error'; entry.error = e.message; }
+      renderFileList(); updateAnalyzeBtn();
+    }
+
+    async function parsePDF(file) {
+      const buf = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+      let text = '';
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const c = await page.getTextContent();
+        text += c.items.map(it => it.str).join(' ') + '\n';
+      }
+      return text.trim();
+    }
+
+    function readText(file) {
+      return new Promise((res, rej) => { const r = new FileReader(); r.onload = e => res(e.target.result); r.onerror = () => rej(new Error('Read failed')); r.readAsText(file); });
+    }
+
+    function removeFile(idx) { files.splice(idx, 1); renderFileList(); updateAnalyzeBtn(); }
+
+    function renderFileList() {
+      const list = document.getElementById('fileList'), badge = document.getElementById('fileBadge');
+      if (!files.length) { list.innerHTML = ''; badge.style.display = 'none'; return; }
+      badge.style.display = 'inline'; badge.textContent = `${files.length} file${files.length > 1 ? 's' : ''}`;
+      const icons = { pdf: '📕', txt: '📄', doc: '📘', docx: '📘', rtf: '📄', md: '📄' };
+      const labels = { pending: 'Pending', parsing: 'Parsing…', ready: 'Ready', analyzing: 'Analyzing…', done: 'Done', error: 'Error' };
+      const sc = { pending: 's-pending', parsing: 's-parsing', ready: 's-ready', analyzing: 's-analyzing', done: 's-done', error: 's-error' };
+      list.innerHTML = files.map((f, i) => `
+    <div class="file-item">
+      <div class="fi-icon fi-${['doc', 'docx'].includes(f.ext) ? 'doc' : f.ext}">${icons[f.ext] || '📄'}</div>
+      <div class="fi-info">
+        <div class="fi-name" title="${escHtml(f.name)}">${escHtml(f.name)}</div>
+        <div class="fi-meta">${(f.file.size / 1024).toFixed(0)} KB${f.text ? ' · ' + f.text.length.toLocaleString() + ' chars' : ''}</div>
+      </div>
+      <span class="fi-status ${sc[f.status] || 's-pending'}">${labels[f.status] || f.status}</span>
+      <button class="fi-del" onclick="removeFile(${i})" title="Remove">×</button>
+    </div>`).join('');
+    }
+
+    // ── JD ────────────────────────────────────────────────────────
+    function onJdChange() {
+      const el = document.getElementById('jdInput');
+      const badge = document.getElementById('jdBadge');
+      badge.style.display = el.value.length ? 'inline' : 'none';
+      if (el.value.length) badge.textContent = el.value.length + ' chars';
+      updateAnalyzeBtn();
+    }
+    function clearJD() { document.getElementById('jdInput').value = ''; onJdChange(); }
+    function clearResumes() { files = []; renderFileList(); updateAnalyzeBtn(); }
+    function clearAll() {
+      clearJD(); clearResumes(); results = [];
+      ['resultsSection', 'progressWrap'].forEach(id => document.getElementById(id).style.display = 'none');
+      document.getElementById('fileInput').value = '';
+      hideError(); updateAnalyzeBtn();
+    }
+
+    function updateAnalyzeBtn() {
+      const jd = document.getElementById('jdInput').value.trim();
+      const ready = files.filter(f => f.status === 'ready' || f.status === 'done');
+      const btn = document.getElementById('analyzeBtn'), hint = document.getElementById('analyzeHint');
+      const p = getProvider();
+      const ok = (p.noKey || apiKey) && jd.length > 40 && ready.length > 0;
+      btn.disabled = !ok;
+      if (!p.noKey && !apiKey) hint.innerHTML = '⚠ Click <strong>AI Provider</strong> to configure a provider.';
+      else if (jd.length <= 40) hint.innerHTML = 'Paste a <strong>job description</strong> to continue.';
+      else if (!ready.length) hint.innerHTML = 'Upload at least <strong>one resume</strong> to continue.';
+      else hint.innerHTML = `Ready · <strong>${ready.length}</strong> resume${ready.length > 1 ? 's' : ''} · <strong>${getProvider().name}</strong>`;
+    }
+
+    // ── ANALYSIS ─────────────────────────────────────────────────
+    async function runAnalysis() {
+      const p = getProvider();
+      if (!p.noKey && !apiKey) { openProviderModal(); return; }
+      hideError();
+      const jd = document.getElementById('jdInput').value.trim();
+      // Reset errored files so they get retried
+      files.forEach(f => { if (f.status === 'error' || f.status === 'analyzing') f.status = 'ready'; });
+      const readyFiles = files.filter(f => f.status === 'ready');
+      if (!readyFiles.length) { updateAnalyzeBtn(); return; }
+
+      const btn = document.getElementById('analyzeBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner"></div> Analyzing…';
+
+      const pw = document.getElementById('progressWrap');
+      pw.style.display = 'block'; pw.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      let hadError = false;
+      for (let i = 0; i < readyFiles.length; i++) {
+        const entry = readyFiles[i]; entry.status = 'analyzing'; renderFileList();
+        setProgress(Math.round((i / readyFiles.length) * 100), `Analyzing ${entry.name} (${i + 1}/${readyFiles.length})…`);
+        try {
+          if (i > 0) await new Promise(r => setTimeout(r, 2000)); // Delay to prevent rate limits
+          const r = await callProvider(entry, jd);
+          // Remove any previous result for this file (if retrying)
+          const prev = results.findIndex(x => x.filename === entry.name);
+          if (prev >= 0) results.splice(prev, 1);
+          results.push(r); entry.status = 'done';
+        } catch (e) {
+          entry.status = 'error'; entry.error = e.message; hadError = true;
+          showError(`❌ ${entry.name}: ${e.message}`);
+          if (/key|auth|invalid|forbidden|401|403/i.test(e.message)) break;
+        }
+        renderFileList();
+      }
+
+      setProgress(100, hadError ? 'Completed with some errors — click Retry to re-run failed files' : 'Analysis complete!');
+      setTimeout(() => { pw.style.display = 'none'; }, 1000);
+
+      results.sort((a, b) => b.score - a.score);
+      carouselPage = 0;
+      if (results.length > 0) renderResults();
+
+      btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> ${hadError ? 'Retry' : 'Analyze Resumes'}`;
+      updateAnalyzeBtn();
+      if (hadError) btn.disabled = true;
+    }
+
+    // ── PROMPT — robust, avoids JSON injection ─────────────────────
+    function buildPrompt(entry, jd) {
+      // Sanitise resume text: remove characters that commonly break JSON
+      const safeResume = entry.text
+        .slice(0, 6000)
+        .replace(/\\/g, '/')        // backslashes → forward slashes
+        .replace(/[\u0000-\u001F\u007F]/g, ' ') // control chars
+        .replace(/"/g, "'");        // double quotes → single quotes (safe inside JSON string)
+
+      const safeJD = jd
+        .slice(0, 3000)
+        .replace(/\\/g, '/')
+        .replace(/[\u0000-\u001F\u007F]/g, ' ')
+        .replace(/"/g, "'");
+
+      return `You are an expert ATS and senior recruiter. Analyze the resume against the job description.
+You MUST respond with ONLY a raw JSON object. No markdown, no code fences, no explanation — just the JSON.
+
+JOB DESCRIPTION:
+${safeJD}
+
+RESUME (${entry.name}):
+${safeResume}
+
+Respond with ONLY this JSON (fill every field, use only simple ASCII in strings):
+{"candidateName":"string","currentRole":"string","yearsExperience":"string","score":0,"skillsScore":0,"experienceScore":0,"educationScore":0,"communicationScore":0,"matchedSkills":["skill1"],"missingSkills":["skill1"],"strengths":["strength1"],"concerns":["concern1"],"summary":"string","recommendation":"string","hiringAction":"Hire|Consider|Pass"}`;
+    }
+
+    async function callProvider(entry, jd) {
+      const p = getProvider();
+      const prompt = buildPrompt(entry, jd);
+      let raw;
+      if (p.type === 'gemini') raw = await callGemini(prompt);
+      else if (p.type === 'anthropic') raw = await callAnthropic(prompt);
+      else if (p.type === 'custom') raw = await callOpenAICompat(prompt, customBaseUrl, customModelId);
+      else if (p.id === 'openrouter') raw = await callOpenRouter(prompt);
+      else raw = await callOpenAICompat(prompt, p.baseUrl, p.model);
+
+      // Extract JSON from response — handles cases where model adds text around it
+      if (!raw) throw new Error("Received an empty response from the AI.");
+      const jsonMatch = typeof raw === 'string' ? raw.match(/\{[\s\S]*\}/) : null;
+      if (!jsonMatch) throw new Error('Model did not return valid JSON. Try a different provider or model.');
+      try {
+        const parsed = JSON.parse(jsonMatch[0]);
+        return { ...parsed, filename: entry.name };
+      } catch (e) {
+        // Attempt light repair: strip trailing commas before } or ]
+        const repaired = jsonMatch[0].replace(/,\s*([}\]])/g, '$1');
+        const parsed = JSON.parse(repaired);
+        return { ...parsed, filename: entry.name };
+      }
+    }
+
+    async function callOpenAICompat(prompt, baseUrl, model) {
+      const p = getProvider();
+      const headers = { 'Content-Type': 'application/json' };
+      if (!p.noKey) headers['Authorization'] = `Bearer ${apiKey}`;
+      const res = await fetch(`${baseUrl}/chat/completions`, {
+        method: 'POST', headers,
+        body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }], temperature: 0.1, max_tokens: 1400 })
+      });
+      if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e?.error?.message || `API error ${res.status}`); }
+      const data = await res.json();
+      const text = data?.choices?.[0]?.message?.content || data?.choices?.[0]?.text;
+      if (!text || typeof text !== 'string') throw new Error("Received an empty or invalid response from the AI. Please try again.");
+      return text;
+    }
+
+    // OpenRouter with automatic fallback across multiple free models
+    async function callOpenRouter(prompt) {
+      const FALLBACK_MODELS = [
+        'meta-llama/llama-3.3-70b-instruct:free',
+        'google/gemma-3-27b-it:free',
+        'google/gemma-3-12b-it:free',
+        'nousresearch/hermes-3-llama-3.1-405b:free',
+      ];
+      const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+        'HTTP-Referer': 'https://resumeiq.app',
+        'X-Title': 'ResumeIQ'
+      };
+      let lastErr = 'OpenRouter: all free models are currently unavailable. Please try again in a moment.';
+      for (const model of FALLBACK_MODELS) {
+        try {
+          const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+            method: 'POST', headers,
+            body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }], temperature: 0.1, max_tokens: 1400 })
+          });
+          const data = await res.json().catch(() => ({}));
+          // "Provider returned error" or overload — try next model
+          const errMsg = data?.error?.message || '';
+          if (!res.ok || errMsg.toLowerCase().includes('provider') || errMsg.toLowerCase().includes('overload')) {
+            lastErr = `${model}: ${errMsg || `HTTP ${res.status}`}`;
+            await new Promise(r => setTimeout(r, 800)); // small pause before next
+            continue;
+          }
+          const text = data?.choices?.[0]?.message?.content || data?.choices?.[0]?.text;
+          if (!text || typeof text !== 'string') { lastErr = `${model}: empty response`; continue; }
+          return text;
+        } catch (e) {
+          lastErr = e.message;
+        }
+      }
+      throw new Error(lastErr);
+    }
+
+    async function callGemini(prompt) {
+      const model = getProvider().model.replace(/^models\//, '');
+      const urls = [
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`,
+      ];
+      let lastErr = 'Gemini request failed.';
+      for (const url of urls) {
+        let status = 0;
+        try {
+          const res = await fetch(url, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.1, maxOutputTokens: 1400 } })
+          });
+          status = res.status;
+          const body = await res.json().catch(() => ({}));
+          if (status === 404) { lastErr = 'Model not found.'; continue; }
+          if (!res.ok) {
+            const msg = body?.error?.message || `Gemini error ${status}`;
+            if (status === 400 || status === 401 || status === 403) throw new Error(msg);
+            lastErr = msg; continue;
+          }
+          const text = body.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (!text) throw new Error('Empty response from Gemini.');
+          return text;
+        } catch (e) {
+          if (/API key|not valid|invalid|401|403/i.test(e.message) || status === 401 || status === 403) throw e;
+          lastErr = e.message;
+        }
+      }
+      throw new Error(lastErr);
+    }
+
+    async function callAnthropic(prompt) {
+      const model = getProvider().model;
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+        body: JSON.stringify({ model, max_tokens: 1400, messages: [{ role: 'user', content: prompt }] })
+      });
+      if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e?.error?.message || `Anthropic error ${res.status}`); }
+      return (await res.json()).content?.find(b => b.type === 'text')?.text || '{}';
+    }
+
+    // ── VIEW ──────────────────────────────────────────────────────
+    function setView(mode) {
+      viewMode = mode;
+      document.getElementById('btnCarousel').className = 'view-btn' + (mode === 'carousel' ? ' active' : '');
+      document.getElementById('btnTable').className = 'view-btn' + (mode === 'table' ? ' active' : '');
+      document.getElementById('carouselView').style.display = mode === 'carousel' ? 'block' : 'none';
+      document.getElementById('tableView').style.display = mode === 'table' ? 'block' : 'none';
+    }
+
+    // ── RENDER ALL ────────────────────────────────────────────────
+    let carouselInterval;
+    function renderResults() {
+      const section = document.getElementById('resultsSection');
+      if (!results.length) { section.style.display = 'none'; return; }
+      const sorted = getSorted();
+      const avg = Math.round(sorted.reduce((s, r) => s + r.score, 0) / sorted.length);
+      const good = sorted.filter(r => r.score >= 75).length;
+      document.getElementById('resultsMeta').textContent =
+        `${sorted.length} candidates · Avg score ${avg}% · ${good} strong match${good !== 1 ? 'es' : ''} · via ${getProvider().name}`;
+      document.getElementById('printMeta').textContent =
+        `Generated ${new Date().toLocaleDateString()} · ${sorted.length} candidates · Provider: ${getProvider().name}`;
+      renderCarousel(sorted);
+      renderTable(sorted);
+      renderRecommendations(sorted);
+      section.style.display = 'block';
+      setView(viewMode);
+
+      clearInterval(carouselInterval);
+      if (sorted.length > CARDS_PER_PAGE) {
+        carouselInterval = setInterval(autoScrollCarousel, 5000);
+        document.getElementById('carouselView').onmouseenter = () => clearInterval(carouselInterval);
+        document.getElementById('carouselView').onmouseleave = () => {
+          clearInterval(carouselInterval);
+          carouselInterval = setInterval(autoScrollCarousel, 5000);
+        };
+      }
+    }
+
+    function autoScrollCarousel() {
+      const maxPage = Math.max(0, results.length - CARDS_PER_PAGE);
+      carouselPage = carouselPage >= maxPage ? 0 : carouselPage + 1;
+      renderCarousel(getSorted());
+    }
+
+    function getSorted() {
+      const val = document.getElementById('sortSelect')?.value || 'score';
+      const s = [...results];
+      if (val === 'score') s.sort((a, b) => b.score - a.score);
+      else if (val === 'name') s.sort((a, b) => (a.candidateName || '').localeCompare(b.candidateName || ''));
+      else if (val === 'skills') s.sort((a, b) => b.skillsScore - a.skillsScore);
+      else if (val === 'experience') s.sort((a, b) => b.experienceScore - a.experienceScore);
+      return s;
+    }
+
+    // ── CAROUSEL ──────────────────────────────────────────────────
+    function renderCarousel(sorted) {
+      const total = sorted.length, maxPage = Math.max(0, total - CARDS_PER_PAGE);
+      if (carouselPage > maxPage) carouselPage = maxPage;
+      const offset = -(carouselPage * (100 / CARDS_PER_PAGE));
+      const dots = Array.from({ length: total }, (_, i) =>
+        `<div class="carousel-dot${i === carouselPage ? ' active' : ''}" onclick="gotoSlide(${i})"></div>`).join('');
+      document.getElementById('carouselView').innerHTML = `
+    <div class="carousel-container">
+      <div class="carousel-track-wrap">
+        <div class="carousel-track" id="cTrack" style="transform:translateX(calc(${offset}% - ${carouselPage * 16}px))">
+          ${sorted.map((r, i) => `<div class="carousel-slide">${renderCard(r, i + 1)}</div>`).join('')}
+        </div>
+      </div>
+      <div class="carousel-nav">
+        <div class="carousel-arrows">
+          <button class="carousel-arrow" onclick="movePage(-1)" ${carouselPage === 0 ? 'disabled' : ''}>&#8592;</button>
+          <button class="carousel-arrow" onclick="movePage(1)" ${carouselPage >= maxPage ? 'disabled' : ''}>&#8594;</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="carousel-dots">${dots}</div>
+          <div class="carousel-counter">${carouselPage + 1}–${Math.min(carouselPage + CARDS_PER_PAGE, total)} of ${total}</div>
+        </div>
+      </div>
+    </div>`;
+    }
+
+    function movePage(dir) { carouselPage = Math.max(0, Math.min(carouselPage + dir, results.length - CARDS_PER_PAGE)); renderCarousel(getSorted()); }
+    function gotoSlide(i) { carouselPage = i; renderCarousel(getSorted()); }
+
+    function renderCard(r, rank) {
+      const verdict = r.score >= 75 ? 'Strong Match' : r.score >= 50 ? 'Possible Fit' : 'Weak Match';
+      const vClass = r.score >= 75 ? 'verdict-strong' : r.score >= 50 ? 'verdict-good' : 'verdict-weak';
+      const color = r.score >= 75 ? '#27704a' : r.score >= 50 ? '#b8860b' : '#c0392b';
+      const r2 = 34, circ = 2 * Math.PI * r2, off = circ * (1 - r.score / 100);
+      const ribbons = { 1: { cls: 'rr-gold', label: '🥇 Best' }, 2: { cls: 'rr-silver', label: '🥈 2nd' }, 3: { cls: 'rr-bronze', label: '🥉 3rd' } };
+      const rib = ribbons[rank];
+      const idx = results.findIndex(x => x.filename === r.filename);
+      return `<div class="result-card rank-${Math.min(rank, 4)}" onclick="openDrawer(${idx})">
+    ${rib ? `<div class="rank-ribbon ${rib.cls}">${rib.label}</div>` : ''}
+    <div class="card-score-area">
+      <div class="score-donut-wrap">
+        <svg width="80" height="80" viewBox="0 0 80 80">
+          <circle cx="40" cy="40" r="${r2}" fill="none" stroke="#edeae2" stroke-width="6"/>
+          <circle cx="40" cy="40" r="${r2}" fill="none" stroke="${color}" stroke-width="6"
+            stroke-dasharray="${circ.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" stroke-linecap="round"/>
+        </svg>
+        <div class="score-donut-text"><span class="score-donut-num" style="color:${color}">${r.score}</span><span class="score-donut-lbl">/ 100</span></div>
+      </div>
+      <div class="card-name" title="${escHtml(r.candidateName || 'Unknown')}">${escHtml(r.candidateName || 'Unknown')}</div>
+      <div class="card-file">#${rank} · ${escHtml(r.filename)}</div>
+      <span class="verdict-chip ${vClass}">${verdict}</span>
+    </div>
+    <div class="card-details">
+      <div><div class="detail-label">Scores</div><div class="mini-bars">
+        ${mb('Skills', r.skillsScore)}${mb('Experience', r.experienceScore)}${mb('Education', r.educationScore)}
+      </div></div>
+      ${(r.matchedSkills || []).length ? `<div><div class="detail-label">Matched</div><div class="skill-chips">${(r.matchedSkills || []).slice(0, 5).map(s => `<span class="skill-chip sc-match">${escHtml(s)}</span>`).join('')}</div></div>` : ''}
+      ${(r.missingSkills || []).length ? `<div><div class="detail-label">Missing</div><div class="skill-chips">${(r.missingSkills || []).slice(0, 3).map(s => `<span class="skill-chip sc-missing">${escHtml(s)}</span>`).join('')}</div></div>` : ''}
+      <div class="card-summary">${escHtml((r.summary || '').slice(0, 120))}${(r.summary || '').length > 120 ? '…' : ''}</div>
+    </div>
+    <div class="card-hint">Click to view full details →</div>
+  </div>`;
+    }
+
+    function mb(label, val) {
+      const c = val >= 75 ? '#27704a' : val >= 50 ? '#b8860b' : '#c0392b';
+      return `<div class="mini-bar-row"><span class="mini-bar-lbl">${label}</span><div class="mini-bar-track"><div class="mini-bar-fill" style="width:${val}%;background:${c}"></div></div><span class="mini-bar-val">${val}</span></div>`;
+    }
+
+    // ── TABLE ─────────────────────────────────────────────────────
+    function renderTable(sorted) {
+      document.getElementById('tableView').innerHTML = `
+    <div class="table-wrap">
+      <table class="results-table">
+        <thead><tr>
+          <th>#</th><th>Candidate</th><th>Score</th><th>Skills</th><th>Experience</th><th>Education</th>
+          <th>Matched Skills</th><th>Missing Skills</th><th>Action</th>
+        </tr></thead>
+        <tbody>${sorted.map((r, i) => {
+        const color = r.score >= 75 ? '#27704a' : r.score >= 50 ? '#b8860b' : '#c0392b';
+        const action = r.hiringAction || (r.score >= 75 ? 'Hire' : r.score >= 50 ? 'Consider' : 'Pass');
+        const aC = action === 'Hire' ? 'reco-action-hire' : action === 'Consider' ? 'reco-action-consider' : 'reco-action-pass';
+        const idx = results.findIndex(x => x.filename === r.filename);
+        return `<tr onclick="openDrawer(${idx})">
+            <td class="tbl-rank">${i + 1}</td>
+            <td><div class="tbl-name">${escHtml(r.candidateName || 'Unknown')}</div><div class="tbl-role">${escHtml(r.currentRole || r.filename)}</div></td>
+            <td><div class="tbl-score" style="color:${color};border-color:${color}">${r.score}</div></td>
+            <td><div class="tbl-bar-wrap"><div class="tbl-bar-label">${r.skillsScore}%</div><div class="tbl-bar"><div class="tbl-bar-fill" style="width:${r.skillsScore}%;background:${r.skillsScore >= 75 ? '#27704a' : r.skillsScore >= 50 ? '#b8860b' : '#c0392b'}"></div></div></div></td>
+            <td><div class="tbl-bar-wrap"><div class="tbl-bar-label">${r.experienceScore}%</div><div class="tbl-bar"><div class="tbl-bar-fill" style="width:${r.experienceScore}%;background:${r.experienceScore >= 75 ? '#27704a' : r.experienceScore >= 50 ? '#b8860b' : '#c0392b'}"></div></div></div></td>
+            <td><div class="tbl-bar-wrap"><div class="tbl-bar-label">${r.educationScore}%</div><div class="tbl-bar"><div class="tbl-bar-fill" style="width:${r.educationScore}%;background:${r.educationScore >= 75 ? '#27704a' : r.educationScore >= 50 ? '#b8860b' : '#c0392b'}"></div></div></div></td>
+            <td><div class="tbl-chips">${(r.matchedSkills || []).slice(0, 4).map(s => `<span class="skill-chip sc-match">${escHtml(s)}</span>`).join('')}</div></td>
+            <td><div class="tbl-chips">${(r.missingSkills || []).slice(0, 3).map(s => `<span class="skill-chip sc-missing">${escHtml(s)}</span>`).join('')}</div></td>
+            <td><span class="reco-action-label ${aC}">${action}</span></td>
+          </tr>`;
+      }).join('')}
+        </tbody>
+      </table>
+    </div>`;
+    }
+
+    // ── RECOMMENDATIONS ───────────────────────────────────────────
+    function renderRecommendations(sorted) {
+      const hires = sorted.filter(r => (r.hiringAction || '').toLowerCase() === 'hire' || r.score >= 75);
+      const considers = sorted.filter(r => (r.hiringAction || '').toLowerCase() === 'consider' || (r.score >= 50 && r.score < 75));
+      const passes = sorted.filter(r => (r.hiringAction || '').toLowerCase() === 'pass' || r.score < 50);
+
+      const top = sorted[0];
+      const overallReco = top ? `Based on the analysis of ${sorted.length} candidate${sorted.length > 1 ? 's' : ''}, <strong>${escHtml(top.candidateName || 'the top candidate')}</strong> is the strongest match with a score of <strong>${top.score}%</strong>. ${hires.length > 1 ? `${hires.length} candidates are recommended for hire.` : hires.length === 1 ? `1 candidate is recommended for hire.` : 'No candidates fully meet the requirements — consider widening your search.'} ${considers.length > 0 ? `${considers.length} candidate${considers.length > 1 ? 's are' : ' is'} worth a second look.` : ''}` : '';
+
+      document.getElementById('recoPanel').innerHTML = `
+    <div class="reco-panel">
+      <div class="reco-header">
+        <div class="reco-header-icon">🎯</div>
+        <div>
+          <div class="reco-title">Hiring Recommendations</div>
+          <div class="reco-sub">${hires.length} recommended · ${considers.length} to consider · ${passes.length} not recommended</div>
+        </div>
+      </div>
+
+      ${overallReco ? `<div class="reco-summary-section" style="margin-top:0;padding-top:0;border-top:none;margin-bottom:18px">
+        <div class="reco-summary-text">${overallReco}</div>
+      </div>`: ''}
+
+      <div class="reco-grid">
+        ${sorted.map((r, i) => {
+        const action = r.hiringAction || (r.score >= 75 ? 'Hire' : r.score >= 50 ? 'Consider' : 'Pass');
+        const aClass = action === 'Hire' ? 'reco-action-hire' : action === 'Consider' ? 'reco-action-consider' : 'reco-action-pass';
+        const color = r.score >= 75 ? '#27704a' : r.score >= 50 ? '#b8860b' : '#c0392b';
+        const idx = results.findIndex(x => x.filename === r.filename);
+        return `<div class="reco-card" onclick="openDrawer(${idx})" style="cursor:pointer">
+            <div class="reco-rank">#${i + 1}</div>
+            <div class="reco-name">${escHtml(r.candidateName || 'Unknown')}</div>
+            <div class="reco-role">${escHtml(r.currentRole || r.filename)}${r.yearsExperience ? ' · ' + r.yearsExperience + ' yrs' : ''}</div>
+            <div class="reco-score-row">
+              <div class="reco-score-num" style="color:${color}">${r.score}</div>
+              <div style="margin-left:4px;font-size:11px;color:var(--ink3);padding-top:10px">/ 100</div>
+              <div style="margin-left:10px"><span class="reco-action-label ${aClass}">${action}</span></div>
+            </div>
+            ${(r.strengths || []).length ? `<div class="reco-strengths">${(r.strengths || []).slice(0, 3).map(s => `<span class="skill-chip sc-match">${escHtml(s)}</span>`).join('')}</div>` : ''}
+            <div class="reco-text" style="margin-top:9px">${escHtml(r.recommendation || r.summary || '')}</div>
+          </div>`;
+      }).join('')}
+      </div>
+    </div>`;
+    }
+
+    // ── DRAWER ────────────────────────────────────────────────────
+    function openDrawer(idx) {
+      const r = results[idx]; if (!r) return;
+      const color = r.score >= 75 ? '#27704a' : r.score >= 50 ? '#b8860b' : '#c0392b';
+      const action = r.hiringAction || (r.score >= 75 ? 'Hire' : r.score >= 50 ? 'Consider' : 'Pass');
+      const aClass = action === 'Hire' ? 'reco-action-hire' : action === 'Consider' ? 'reco-action-consider' : 'reco-action-pass';
+      document.getElementById('drawer').innerHTML = `
+    <div class="drawer-head">
+      <div style="flex:1;min-width:0">
+        <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(r.candidateName || 'Unknown')}</div>
+        <div style="font-size:11px;color:var(--ink3);margin-top:2px">${escHtml(r.currentRole || '')}${r.currentRole ? ' · ' : ''}${escHtml(r.filename)}</div>
+      </div>
+      <button class="drawer-close" onclick="closeDrawer()">×</button>
+    </div>
+    <div class="drawer-body">
+      <div style="display:flex;align-items:center;gap:14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px">
+        <div style="font-family:'Playfair Display',serif;font-size:44px;font-weight:700;color:${color};line-height:1">${r.score}</div>
+        <div>
+          <div style="font-size:12.5px;font-weight:600;margin-bottom:4px">Overall Match Score</div>
+          <div style="font-size:11px;color:var(--ink3)">${r.yearsExperience ? r.yearsExperience + ' yrs exp · ' : ''}${r.score >= 75 ? 'Strong fit' : r.score >= 50 ? 'Potential fit' : 'Significant gaps'}</div>
+          <div style="margin-top:6px"><span class="reco-action-label ${aClass}">${action}</span></div>
+        </div>
+      </div>
+      <div><div class="drawer-section-title">Score Breakdown</div>
+        <div class="score-breakdown-grid">
+          ${[['Skills', r.skillsScore], ['Experience', r.experienceScore], ['Education', r.educationScore], ['Clarity', r.communicationScore]].map(([l, v]) => `
+            <div class="score-breakdown-item"><div class="sbi-label">${l}</div><div class="sbi-score" style="color:${v >= 75 ? '#27704a' : v >= 50 ? '#b8860b' : '#c0392b'}">${v || 0}</div></div>`).join('')}
+        </div>
+      </div>
+      <div><div class="drawer-section-title">Matched Skills</div>
+        <div class="skill-chips">${(r.matchedSkills || []).map(s => `<span class="skill-chip sc-match">${escHtml(s)}</span>`).join('') || '<span style="color:var(--ink3);font-size:11px">None identified</span>'}</div>
+      </div>
+      <div><div class="drawer-section-title">Missing Skills</div>
+        <div class="skill-chips">${(r.missingSkills || []).map(s => `<span class="skill-chip sc-missing">${escHtml(s)}</span>`).join('') || '<span style="color:var(--ink3);font-size:11px">No gaps</span>'}</div>
+      </div>
+      <div><div class="drawer-section-title">Key Strengths</div>
+        <div class="strengths-list">${(r.strengths || []).map(s => `<div class="strength-item"><div class="strength-dot"></div><span>${escHtml(s)}</span></div>`).join('') || '—'}</div>
+      </div>
+      <div><div class="drawer-section-title">Concerns &amp; Gaps</div>
+        <div class="concerns-list">${(r.concerns || []).map(c => `<div class="concern-item"><div class="concern-dot"></div><span>${escHtml(c)}</span></div>`).join('') || '—'}</div>
+      </div>
+      <div><div class="drawer-section-title">Recruiter Summary</div>
+        <div style="font-size:12.5px;color:var(--ink2);line-height:1.75">${escHtml(r.summary || '')}</div>
+      </div>
+      <div><div class="drawer-section-title">Hiring Recommendation</div>
+        <div class="recommendation-box">${escHtml(r.recommendation || '')}</div>
+      </div>
+    </div>`;
+      document.getElementById('drawerOverlay').style.display = 'block';
+      document.getElementById('drawer').style.display = 'block';
+    }
+
+    function closeDrawer() {
+      document.getElementById('drawerOverlay').style.display = 'none';
+      document.getElementById('drawer').style.display = 'none';
+    }
+
+    // ── EXPORT ────────────────────────────────────────────────────
+    function exportCSV() {
+      const sorted = getSorted();
+      const h = ['Rank', 'Name', 'Role', 'File', 'Score', 'Skills', 'Experience', 'Education', 'Clarity', 'Action', 'Matched Skills', 'Missing Skills', 'Strengths', 'Concerns', 'Summary', 'Recommendation'];
+      const rows = sorted.map((r, i) => [
+        i + 1, r.candidateName || '', r.currentRole || '', r.filename, r.score,
+        r.skillsScore, r.experienceScore, r.educationScore, r.communicationScore || 0,
+        r.hiringAction || (r.score >= 75 ? 'Hire' : r.score >= 50 ? 'Consider' : 'Pass'),
+        (r.matchedSkills || []).join('; '),
+        (r.missingSkills || []).join('; '),
+        (r.strengths || []).join('; '),
+        (r.concerns || []).join('; '),
+        (r.summary || '').replace(/"/g, "'"),
+        (r.recommendation || '').replace(/"/g, "'"),
+      ]);
+      dlFile('resume-analysis.csv', [h, ...rows].map(row => row.map(c => `"${c}"`).join(',')).join('\n'), 'text/csv');
+    }
+
+    function exportJSON() { dlFile('resume-analysis.json', JSON.stringify(getSorted(), null, 2), 'application/json'); }
+
+    function exportPDF() {
+      // Build a standalone print window with a full styled report
+      const sorted = getSorted();
+      const provName = getProvider().name;
+      const date = new Date().toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
+
+      const scoreColor = v => v >= 75 ? '#27704a' : v >= 50 ? '#b8860b' : '#c0392b';
+      const chipStyle = 'display:inline-block;font-size:9px;padding:1px 6px;border-radius:3px;font-family:monospace;margin:1px';
+      const matchChip = s => `<span style="${chipStyle};background:#eaf5ee;color:#27704a">${escHtml(s)}</span>`;
+      const missChip = s => `<span style="${chipStyle};background:#fdf0ee;color:#c0392b">${escHtml(s)}</span>`;
+      const actionColor = a => a === 'Hire' ? '#27704a' : a === 'Consider' ? '#b8860b' : '#c0392b';
+      const actionBg = a => a === 'Hire' ? '#eaf5ee' : a === 'Consider' ? '#fefae8' : '#fdf0ee';
+
+      const tableRows = sorted.map((r, i) => {
+        const action = r.hiringAction || (r.score >= 75 ? 'Hire' : r.score >= 50 ? 'Consider' : 'Pass');
+        return `<tr style="border-bottom:1px solid #ddd">
+      <td style="padding:8px;font-weight:700;color:#666">${i + 1}</td>
+      <td style="padding:8px"><strong>${escHtml(r.candidateName || 'Unknown')}</strong><br><span style="font-size:10px;color:#666">${escHtml(r.currentRole || r.filename)}</span></td>
+      <td style="padding:8px;text-align:center;font-weight:700;font-size:18px;color:${scoreColor(r.score)}">${r.score}</td>
+      <td style="padding:8px;text-align:center">${r.skillsScore || 0}%</td>
+      <td style="padding:8px;text-align:center">${r.experienceScore || 0}%</td>
+      <td style="padding:8px;text-align:center">${r.educationScore || 0}%</td>
+      <td style="padding:8px">${(r.matchedSkills || []).slice(0, 4).map(matchChip).join(' ')}</td>
+      <td style="padding:8px">${(r.missingSkills || []).slice(0, 3).map(missChip).join(' ')}</td>
+      <td style="padding:8px;text-align:center"><span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:${actionBg(action)};color:${actionColor(action)}">${action}</span></td>
+    </tr>`;
+      }).join('');
+
+      const recoCards = sorted.map((r, i) => {
+        const action = r.hiringAction || (r.score >= 75 ? 'Hire' : r.score >= 50 ? 'Consider' : 'Pass');
+        return `<div style="background:#f9f7f3;border:1px solid #ddd;border-radius:8px;padding:14px;break-inside:avoid">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div>
+          <strong style="font-size:14px">#${i + 1} ${escHtml(r.candidateName || 'Unknown')}</strong>
+          <div style="font-size:10px;color:#666">${escHtml(r.currentRole || '')}${r.yearsExperience ? ' · ' + r.yearsExperience + ' yrs' : ''}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:28px;font-weight:700;color:${scoreColor(r.score)}">${r.score}</div>
+          <span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px;background:${actionBg(action)};color:${actionColor(action)}">${action}</span>
+        </div>
+      </div>
+      <div style="font-size:11px;color:#333;line-height:1.6;margin-bottom:8px">${escHtml(r.recommendation || r.summary || '')}</div>
+      <div>${(r.strengths || []).map(s => `<span style="${chipStyle};background:#eaf5ee;color:#27704a">✓ ${escHtml(s)}</span>`).join(' ')}</div>
+    </div>`;
+      }).join('');
+
+      const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"/>
+    <title>ResumeIQ Report — ${date}</title>
+    <style>
+      body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f2ec;color:#1a1814;margin:0;padding:32px;font-size:12px;line-height:1.5}
+      h1{font-size:26px;font-weight:700;margin:0 0 4px}
+      h2{font-size:16px;font-weight:700;margin:24px 0 10px;padding-bottom:6px;border-bottom:2px solid #1a1814}
+      table{width:100%;border-collapse:collapse}
+      thead{background:#1a1814;color:white}
+      th{padding:9px 10px;text-align:left;font-size:9px;letter-spacing:1px;text-transform:uppercase}
+      .reco-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:0}
+      @media print{body{padding:16px}h2{page-break-after:avoid}.reco-grid div{break-inside:avoid}}
+    </style>
+  </head><body>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <div>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">
+          <svg width="120" height="32" viewBox="0 0 600 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <style>
+                @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@900&amp;display=swap');
+                .brand-text-print { font-family: 'Playfair Display', serif; font-weight: 900; font-size: 120px; fill: #0c0b0a; letter-spacing: -3px; }
+                .accent-iq { fill: #9e3427; }
+              </style>
+            </defs>
+            <text x="50%" y="50%" class="brand-text-print" text-anchor="middle" dominant-baseline="middle">Resume<tspan class="accent-iq">iQ</tspan></text>
+          </svg>
+          <h1 style="margin:0;line-height:1;">Hiring Analysis Report</h1>
+        </div>
+        <div style="font-size:11px;color:#666">${date} · ${sorted.length} candidates analyzed · Provider: ${provName}</div>
+      </div>
+      <div style="text-align:right;font-size:10px;color:#999">${document.getElementById('recruiterInput').value ? 'Prepared by ' + escHtml(document.getElementById('recruiterInput').value) : ''}</div>
+    </div>
+    <hr style="border:none;border-top:1px solid #ddd;margin:16px 0"/>
+
+    <h2>Candidate Ranking Table</h2>
+    <table>
+      <thead><tr>
+        <th>#</th><th>Candidate</th><th>Score</th><th>Skills</th><th>Experience</th><th>Education</th>
+        <th>Matched Skills</th><th>Missing Skills</th><th>Action</th>
+      </tr></thead>
+      <tbody>${tableRows}</tbody>
+    </table>
+
+    <h2>Hiring Recommendations</h2>
+    <div class="reco-grid">${recoCards}</div>
+
+    <div style="margin-top:32px;padding-top:16px;border-top:1px solid #ddd;font-size:10px;color:#999;text-align:center;line-height:1.6">
+      Generated by ResumeIQ · <a href="https://github.com/opsengine-sys" target="_blank" style="color:#999;text-decoration:none">opsengine-sys</a> · ${date}<br>
+      <strong>Disclaimer:</strong> The analysis and scores are generated exclusively by the selected AI Provider (${provName}). This tool acts solely as an interface and does not manipulate or verify the AI's conclusions.
+    </div>
+  </body></html>`;
+
+      const win = window.open('', '_blank');
+      win.document.write(html);
+      win.document.close();
+      win.onload = () => { win.focus(); win.print(); };
+    }
+
+    function dlFile(name, content, type) {
+      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([content], { type })); a.download = name; a.click();
+    }
+
+    // ── UTILS ─────────────────────────────────────────────────────
+    function setProgress(pct, msg) {
+      document.getElementById('progressFill').style.width = pct + '%';
+      document.getElementById('progressPct').textContent = pct + '%';
+      document.getElementById('progressMsg').textContent = msg;
+    }
+    function showError(msg) { const el = document.getElementById('errorBanner'); el.style.display = 'flex'; el.innerHTML = `<span>⚠</span><span>${escHtml(msg)}</span>`; }
+    function hideError() { document.getElementById('errorBanner').style.display = 'none'; }
+    function escHtml(str) { if (!str) return ''; return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeDrawer(); closeProviderModal(); closeInstructionsModal(); } });
+  </script>
+</body>
+
+</html>
