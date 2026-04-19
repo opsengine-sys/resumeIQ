@@ -36,7 +36,7 @@ No installation, no build step, no server required.
 👉 [resumeiq.vercel.app](https://resumeiq.vercel.app)
 
 **Option 2 — Run locally:**
-1. **[Download `resume-analyzer.html`](./resume-analyzer.html)**
+1. **[Download `index.html`](./index.html)**
 2. Open it in any modern browser (Chrome, Edge, Firefox)
 3. Pick an AI provider and paste your API key (or use the free public option)
 4. Paste a job description → upload resumes → click **Analyze**
@@ -138,7 +138,7 @@ The AI is prompted to return a structured JSON object containing:
 
 ```
 resumeIQ/
-├── resume-analyzer.html   # The entire application (single file)
+├── index.html             # The entire application (single file)
 ├── README.md
 └── LICENSE
 ```
@@ -147,10 +147,10 @@ resumeIQ/
 
 ## 🤝 Contributing
 
-Issues and PRs are welcome. Since this is a single-file app, all changes go into `resume-analyzer.html`.
+Issues and PRs are welcome. Since this is a single-file app, all changes go into `index.html`.
 
 1. Fork the repo
-2. Make your changes in `resume-analyzer.html`
+2. Make your changes in `index.html`
 3. Open a PR with a clear description of what you changed and why
 
 ---
