@@ -2670,16 +2670,16 @@
       btn.innerHTML = '<div class="spinner"></div> Cleaning…';
       
       try {
-        const prompt = `You are a helpful assistant. Below is a raw fetch of a job posting page. 
+        const prompt = `You are a helpful recruitment assistant. Below is a raw fetch of a job posting page. 
 EXTRACT ONLY the Job Title, Company Name, and the full Job Description (Responsibilities, Requirements, Benefits). 
 REMOVE all navigation links, sign-in prompts, footer junk, and cookie notices.
-Return only the clean job text.
+Return only the clean job text. Do not add any extra comments.
 
 RAW TEXT:
 ${rawText.slice(0, 8000)}`;
 
-        const cleanText = await callProvider({ name: 'JD Cleanup' }, prompt);
-        el.value = cleanText.summary || cleanText; // Handle both JSON and raw string if provider behaves differently
+        const cleanText = await callAi(prompt);
+        el.value = cleanText.trim();
         onJdChange();
       } catch (e) {
         alert('AI Cleanup failed: ' + e.message);
@@ -2791,12 +2791,7 @@ Respond with ONLY this JSON (fill every field, use only simple ASCII in strings)
     async function callProvider(entry, jd) {
       const p = getProvider();
       const prompt = buildPrompt(entry, jd);
-      let raw;
-      if (p.type === 'gemini') raw = await callGemini(prompt);
-      else if (p.type === 'anthropic') raw = await callAnthropic(prompt);
-      else if (p.type === 'custom') raw = await callOpenAICompat(prompt, customBaseUrl, customModelId);
-      else if (p.id === 'openrouter') raw = await callOpenRouter(prompt);
-      else raw = await callOpenAICompat(prompt, p.baseUrl, p.model);
+      const raw = await callAi(prompt);
 
       // Extract JSON from response — handles cases where model adds text around it
       if (!raw) throw new Error("Received an empty response from the AI.");
@@ -2811,6 +2806,15 @@ Respond with ONLY this JSON (fill every field, use only simple ASCII in strings)
         const parsed = JSON.parse(repaired);
         return { ...parsed, filename: entry.name };
       }
+    }
+
+    async function callAi(prompt) {
+      const p = getProvider();
+      if (p.type === 'gemini') return await callGemini(prompt);
+      if (p.type === 'anthropic') return await callAnthropic(prompt);
+      if (p.type === 'custom') return await callOpenAICompat(prompt, customBaseUrl, customModelId);
+      if (p.id === 'openrouter') return await callOpenRouter(prompt);
+      return await callOpenAICompat(prompt, p.baseUrl, p.model);
     }
 
     async function callOpenAICompat(prompt, baseUrl, model) {
