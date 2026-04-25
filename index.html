@@ -2083,16 +2083,75 @@
       min-height: 400px;
     }
 
-    .chat-resizer { position: absolute; z-index: 10; }
-    .chat-resizer-r { top: 0; right: 0; width: 6px; height: 100%; cursor: ew-resize; }
-    .chat-resizer-l { top: 0; left: 0; width: 6px; height: 100%; cursor: ew-resize; }
-    .chat-resizer-t { top: 0; left: 0; width: 100%; height: 6px; cursor: ns-resize; }
-    .chat-resizer-b { bottom: 0; left: 0; width: 100%; height: 6px; cursor: ns-resize; }
-    .chat-resizer-br { bottom: 0; right: 0; width: 14px; height: 14px; cursor: nwse-resize; }
-    .chat-resizer-bl { bottom: 0; left: 0; width: 14px; height: 14px; cursor: nesw-resize; }
-    .chat-resizer-tr { top: 0; right: 0; width: 14px; height: 14px; cursor: nesw-resize; }
-    .chat-resizer-tl { top: 0; left: 0; width: 14px; height: 14px; cursor: nwse-resize; }
-    
+    .chat-resizer {
+      position: absolute;
+      z-index: 10;
+    }
+
+    .chat-resizer-r {
+      top: 0;
+      right: 0;
+      width: 6px;
+      height: 100%;
+      cursor: ew-resize;
+    }
+
+    .chat-resizer-l {
+      top: 0;
+      left: 0;
+      width: 6px;
+      height: 100%;
+      cursor: ew-resize;
+    }
+
+    .chat-resizer-t {
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 6px;
+      cursor: ns-resize;
+    }
+
+    .chat-resizer-b {
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 6px;
+      cursor: ns-resize;
+    }
+
+    .chat-resizer-br {
+      bottom: 0;
+      right: 0;
+      width: 14px;
+      height: 14px;
+      cursor: nwse-resize;
+    }
+
+    .chat-resizer-bl {
+      bottom: 0;
+      left: 0;
+      width: 14px;
+      height: 14px;
+      cursor: nesw-resize;
+    }
+
+    .chat-resizer-tr {
+      top: 0;
+      right: 0;
+      width: 14px;
+      height: 14px;
+      cursor: nesw-resize;
+    }
+
+    .chat-resizer-tl {
+      top: 0;
+      left: 0;
+      width: 14px;
+      height: 14px;
+      cursor: nwse-resize;
+    }
+
     .chat-resizer-br::after {
       content: '';
       position: absolute;
@@ -2362,6 +2421,7 @@
         transform: translateY(100%);
         border: none;
       }
+
       .chat-resizer {
         display: none !important;
       }
@@ -2693,8 +2753,9 @@
     </div>
     <div id="chatMessages" class="chat-messages">
       <div class="message ai">
-        Hello! I've analyzed your candidates. Ask me anything about their fit, skills, or even for interview question
-        suggestions!
+        Hello! I can help answer your questions about candidates and job descriptions. Feel free to ask about candidate
+        fit, skills, or request interview question suggestions.
+        You can get started once you’ve reviewed the resumes.
         <br><br>
         <div id="chatNote"
           style="background:rgba(192, 57, 43, 0.05); border:1px solid rgba(192, 57, 43, 0.1); border-radius:6px; padding:8px; font-size:10px; color:#c0392b; line-height:1.4;">
@@ -3813,7 +3874,7 @@ ${safeResume}
           startHeight = rect.height;
           startLeft = rect.left;
           startTop = rect.top;
-          
+
           drawer.style.right = 'auto';
           drawer.style.bottom = 'auto';
           drawer.style.left = startLeft + 'px';
