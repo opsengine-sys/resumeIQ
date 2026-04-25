@@ -2655,9 +2655,7 @@
       <div class="message ai">
         Hello! I've analyzed your candidates. Ask me anything about their fit, skills, or even for interview question suggestions!
         <br><br>
-        <div id="chatNote" style="background:rgba(192, 57, 43, 0.05); border:1px solid rgba(192, 57, 43, 0.1); border-radius:6px; padding:8px; font-size:10px; color:#c0392b; line-height:1.4;">
-          <!-- Dynamic Note -->
-        </div>
+        <small style="opacity:0.7; font-size:10px"><em>Note: Responses are generated based on your selected AI Provider.</em></small>
       </div>
     </div>
     <div class="chat-input-area">
@@ -2682,7 +2680,7 @@
 
   <div class="footer">
     ResumeIQ · Built by <strong><a href="https://github.com/opsengine-sys" target="_blank"
-        style="color:var(--ink);text-decoration:none">opsengine-sys</a></strong> · Powered by Publicly Available Free AI APIs · <a href="javascript:void(0)" onclick="openAttributions()" style="color:inherit; text-decoration:underline">Attributions</a> · <a href="javascript:void(0)" onclick="openReportModal()" style="color:inherit; text-decoration:underline">Report Issue</a> · All rights reserved
+        style="color:var(--ink);text-decoration:none">opsengine-sys</a></strong> · Powered by Publicly Available Free AI APIs · <a href="javascript:void(0)" onclick="openAttributions()" style="color:inherit; text-decoration:underline">Attributions</a> · All rights reserved
   </div>
 
   <!-- PROVIDER MODAL -->
@@ -2691,10 +2689,6 @@
     <div class="modal">
       <div class="modal-title">Choose AI Provider</div>
       <div class="modal-sub">Pick a publicly available free AI model to power your analysis.</div>
-      <div style="margin: 12px 0; padding: 10px 14px; background: #fffcf0; border: 1px solid #f8e4a8; border-radius: 8px; font-size: 11px; color: #856404; display: flex; gap: 10px; align-items: center;">
-        <span style="font-size: 16px;">⏳</span>
-        <div><strong>Default Provider Notice:</strong> Public APIs are shared and may be slow or have rate limits. We recommend using your own <strong>Gemini</strong> or <strong>Groq</strong> key for high performance.</div>
-      </div>
       <div class="provider-cards" id="providerCards"></div>
 
       <div id="customUrlWrap" class="custom-url-field" style="display:none">
@@ -2704,21 +2698,16 @@
           <input type="text" class="modal-input" id="customUrlInput" placeholder="https://api.example.com/v1" />
           <div class="modal-hint" id="customUrlHint"></div>
         </div>
-        <div class="modal-field">
+        <div class="modal-field" style="margin-bottom:0">
           <label class="modal-label">Model ID</label>
-          <input type="text" class="modal-input" id="customModelInput" placeholder="e.g. llama3" />
+          <input type="text" class="modal-input" id="customModelInput" placeholder="e.g. llama3.2 or gpt-4o-mini" />
         </div>
       </div>
 
       <div class="modal-field">
-        <label class="modal-label" id="apiKeyLabel">API Key</label>
-        <input type="password" class="modal-input" id="apiKeyInput" placeholder="Enter your key..." />
+        <label class="modal-label">API Key</label>
+        <input type="password" class="modal-input" id="apiKeyInput" placeholder="Paste your API key…" />
         <div class="modal-hint" id="apiKeyHint"></div>
-      </div>
-
-      <div class="modal-actions">
-        <button class="btn" onclick="closeProviderModal()">Cancel</button>
-        <button class="btn btn-primary" onclick="saveProvider()">Save Configuration</button>
       </div>
       <div class="security-note"
         style="margin: 16px 0; padding: 12px; background: #fef2f2; border-radius: 8px; border: 1px solid #fee2e2; display: flex; gap: 10px; align-items: flex-start;">
@@ -2907,34 +2896,6 @@
     </div>
   </div>
 
-  <!-- REPORT ISSUE MODAL -->
-  <div id="reportModal" class="modal-overlay" style="display:none"
-    onclick="if(event.target===this)closeReportModal()">
-    <div class="modal" style="max-width:450px">
-      <div class="modal-title">Report an Issue</div>
-      <div class="modal-sub">Found a bug or have a suggestion? Let us know!</div>
-      
-      <div class="modal-field" style="margin-top:16px">
-        <label class="modal-label">Your Email <span style="color:var(--ink3);font-weight:400">(Optional)</span></label>
-        <input type="email" class="modal-input" id="reportEmail" placeholder="email@example.com" />
-      </div>
-      
-      <div class="modal-field">
-        <label class="modal-label">Issue Description</label>
-        <textarea class="modal-input" id="reportDesc" style="min-height:100px; resize:vertical; padding-top:10px" placeholder="Describe what happened or what you'd like to see..."></textarea>
-      </div>
-
-      <div style="font-size:10px; color:var(--ink3); margin-bottom:16px; line-height:1.4">
-        <strong>Note:</strong> Reports are sent via Resend API. We do not store your data beyond this submission.
-      </div>
-
-      <div class="modal-actions">
-        <button class="btn" onclick="closeReportModal()">Cancel</button>
-        <button class="btn btn-primary" id="submitReportBtn" onclick="sendIssueReport()">Submit Report</button>
-      </div>
-    </div>
-  </div>
-
   <!-- ATTRIBUTIONS MODAL -->
   <div id="attributionsModal" class="modal-overlay" style="display:none"
     onclick="if(event.target===this)closeAttributionsModal()">
@@ -3090,59 +3051,6 @@
     function openAttributions() { document.getElementById('attributionsModal').style.display = 'flex'; }
     function closeAttributionsModal() { document.getElementById('attributionsModal').style.display = 'none'; }
 
-    function openReportModal() { document.getElementById('reportModal').style.display = 'flex'; }
-    function closeReportModal() { document.getElementById('reportModal').style.display = 'none'; }
-
-    async function sendIssueReport() {
-      const email = document.getElementById('reportEmail').value.trim();
-      const desc = document.getElementById('reportDesc').value.trim();
-      const btn = document.getElementById('submitReportBtn');
-
-      if (!desc) { alert('Please describe the issue.'); return; }
-
-      btn.disabled = true;
-      btn.textContent = 'Sending...';
-
-      try {
-        const response = await fetch('/api/report', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, desc })
-        });
-
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.message || 'Failed to send report.');
-
-        alert('Thank you! Your report has been sent.');
-        closeReportModal();
-        document.getElementById('reportEmail').value = '';
-        document.getElementById('reportDesc').value = '';
-      } catch (e) {
-        alert('Error: ' + e.message);
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Submit Report';
-      }
-    }
-
-    function updateChatNote() {
-      const el = document.getElementById('chatNote');
-      if (!el) return;
-      const p = getProvider();
-      const isPublic = p.id === 'pollinations';
-      if (isPublic) {
-        el.style.background = 'rgba(192, 57, 43, 0.05)';
-        el.style.borderColor = 'rgba(192, 57, 43, 0.1)';
-        el.style.color = '#c0392b';
-        el.innerHTML = `<strong>Note:</strong> Public AI API is currently active. Responses may be slower or experience rate limits. For best results, switch to your own API key in the Provider settings.`;
-      } else {
-        el.style.background = 'rgba(39, 112, 74, 0.05)';
-        el.style.borderColor = 'rgba(39, 112, 74, 0.1)';
-        el.style.color = '#27704a';
-        el.innerHTML = `<strong>Connected:</strong> Responses are generated using your <strong>${p.name}</strong> API key for high performance.`;
-      }
-    }
-
     function renderProviderCards() {
       document.getElementById('providerCards').innerHTML = PROVIDERS.map(p => `
     <div class="provider-card ${p.id === selectedProviderId ? 'selected' : ''}" onclick="selectProviderCard('${p.id}')">
@@ -3168,7 +3076,6 @@
       document.getElementById('customUrlWrap').style.display = isCustom ? 'block' : 'none';
       document.getElementById('apiKeyInput').placeholder = p.placeholder;
       document.getElementById('apiKeyHint').innerHTML = p.hint;
-
       if (isCustom) {
         document.getElementById('customUrlInput').value = customBaseUrl || 'http://localhost:11434/v1';
         document.getElementById('customModelInput').value = customModelId || '';
@@ -3190,14 +3097,12 @@
       document.getElementById('providerPillText').textContent = p.noKey ? `${p.name} · Free` : `${p.name} · ${p.id === 'custom' ? customModelId : p.model.split('/').pop().replace(':free', '')}`;
       closeProviderModal();
       updateAnalyzeBtn();
-      updateChatNote();
     }
 
     window.addEventListener('DOMContentLoaded', () => {
       const rDetails = sessionStorage.getItem('recruiterDetails');
       if (rDetails) document.getElementById('recruiterInput').value = rDetails;
       renderProviderCards();
-      updateChatNote();
     });
 
     // ── FILES ─────────────────────────────────────────────────────
@@ -3419,20 +3324,8 @@
         if (errors.length > 0) hint.innerHTML = '❌ Parsing failed for all files. Check console or try different files.';
         else hint.innerHTML = 'Waiting for parsing to complete...';
       } else {
-        const isPublic = p.id === 'pollinations';
-        hint.innerHTML = `Ready · <strong>${ready.length}</strong> resume${ready.length > 1 ? 's' : ''} · <strong>${p.name}</strong> ${isPublic ? '<span style="color:#c0392b;margin-left:4px">(Public API - May be slow)</span>' : ''}`;
+        hint.innerHTML = `Ready · <strong>${ready.length}</strong> resume${ready.length > 1 ? 's' : ''} · <strong>${p.name}</strong>`;
       }
-    }
-
-    // ── ATS UTILS ──────────────────────────────────────────────────
-    const BUZZWORDS = ['synergy', 'spearheaded', 'orchestrated', 'leveraged', 'passionate', 'results-driven', 'team player', 'outside the box', 'dynamic', 'motivated', 'detail-oriented', 'thought leader', 'value-add', 'ninja', 'rockstar', 'guru'];
-    
-    function analyzeBuzzwords(text) {
-      if (!text) return { found: [], score: 100 };
-      const words = text.toLowerCase().match(/\w+/g) || [];
-      const found = BUZZWORDS.filter(bw => words.includes(bw));
-      const score = Math.max(0, 100 - (found.length * 5));
-      return { found, score };
     }
 
     // ── ANALYSIS ─────────────────────────────────────────────────
@@ -3529,39 +3422,17 @@
         .replace(/[\u0000-\u001F\u007F]/g, ' ')
         .replace(/"/g, "'");
 
-      return `You are an expert ATS (Applicant Tracking System) and Senior Technical Recruiter.
-Your goal is to extract structured data and provide a highly objective compatibility score.
+      return `You are an expert ATS and senior recruiter. Analyze the resume against the job description.
+You MUST respond with ONLY a raw JSON object. No markdown, no code fences, no explanation — just the JSON.
 
-### INSTRUCTIONS:
-1. Analyze the RESUME against the JOB DESCRIPTION.
-2. Identify specific evidence for skills and experience.
-3. Calculate scores (0-100) based on strict alignment.
-4. Return ONLY a raw JSON object. No markdown, no preamble.
-
-### JOB DESCRIPTION:
+JOB DESCRIPTION:
 ${safeJD}
 
-### RESUME (${entry.name}):
+RESUME (${entry.name}):
 ${safeResume}
 
-### OUTPUT SCHEMA (JSON ONLY):
-{
-  "candidateName": "string",
-  "currentRole": "string",
-  "yearsExperience": "string (total years found)",
-  "score": 0, 
-  "skillsScore": 0, 
-  "experienceScore": 0, 
-  "educationScore": 0, 
-  "communicationScore": 0,
-  "matchedSkills": ["exact skills matched"],
-  "missingSkills": ["required skills not found"],
-  "strengths": ["3-4 bullet points of evidence-backed strengths"],
-  "concerns": ["any red flags or missing requirements"],
-  "summary": "1-2 sentence executive summary of the candidate's profile",
-  "recommendation": "Final recommendation (Hire/Consider/Pass) with a brief justification",
-  "hiringAction": "Hire|Consider|Pass"
-}`;
+Respond with ONLY this JSON (fill every field, use only simple ASCII in strings):
+{"candidateName":"string","currentRole":"string","yearsExperience":"string","score":0,"skillsScore":0,"experienceScore":0,"educationScore":0,"communicationScore":0,"matchedSkills":["skill1"],"missingSkills":["skill1"],"strengths":["strength1"],"concerns":["concern1"],"summary":"string","recommendation":"string","hiringAction":"Hire|Consider|Pass"}`;
     }
 
     async function callProvider(entry, jd, signal) {
@@ -4273,14 +4144,6 @@ USER QUESTION: ${text}`;
       <div><div class="drawer-section-title">Hiring Recommendation</div>
         <div class="recommendation-box">${escHtml(r.recommendation || '')}</div>
       </div>
-      ${(() => {
-        const bw = analyzeBuzzwords(r.summary + ' ' + (r.strengths || []).join(' '));
-        if (bw.found.length === 0) return '';
-        return `<div><div class="drawer-section-title">ATS Readability Score: ${bw.score}%</div>
-          <div style="font-size:11px;color:var(--ink3);margin-bottom:8px">Flagged generic jargon (try to replace with specific achievements):</div>
-          <div class="skill-chips">${bw.found.map(w => `<span class="skill-chip" style="background:#eee;color:#666">${w}</span>`).join('')}</div>
-        </div>`;
-      })()}
     </div>`;
       document.getElementById('drawerOverlay').style.display = 'block';
       document.getElementById('drawer').style.display = 'block';
@@ -4551,11 +4414,7 @@ USER QUESTION: ${text}`;
     function showError(msg) { const el = document.getElementById('errorBanner'); el.style.display = 'flex'; el.innerHTML = `<span>⚠</span><span>${escHtml(msg)}</span>`; }
     function hideError() { document.getElementById('errorBanner').style.display = 'none'; }
     function escHtml(str) { if (!str) return ''; return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
-    
-    // Initial calls
-    updateChatNote();
-    
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeDrawer(); closeProviderModal(); closeInstructionsModal(); closeAttributionsModal(); closeReportModal(); } });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeDrawer(); closeProviderModal(); closeInstructionsModal(); closeAttributionsModal(); } });
   </script>
 </body>
 
