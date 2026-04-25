@@ -3194,11 +3194,25 @@
 
     async function parseWord(file) {
       const arrayBuffer = await file.arrayBuffer();
-      const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
-      if (result.messages && result.messages.length > 0) {
-        console.warn('Word parsing messages:', result.messages);
+      const rawResult = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
+      const htmlResult = await mammoth.convertToHtml({ arrayBuffer: arrayBuffer });
+      
+      let text = rawResult.value.trim();
+      if (rawResult.messages && rawResult.messages.length > 0) {
+        console.warn('Word parsing messages:', rawResult.messages);
       }
-      return result.value.trim();
+      
+      const html = htmlResult.value;
+      const links = [];
+      const linkRegex = /href=(["'])(.*?)\1/gi;
+      let match;
+      while ((match = linkRegex.exec(html)) !== null) {
+        if (match[2] && !match[2].startsWith('#')) links.push(match[2]);
+      }
+      if (links.length > 0) {
+        text += '\n\n[Extracted Links: ' + [...new Set(links)].join(', ') + ']';
+      }
+      return text;
     }
 
     async function parsePDF(file, entry) {
@@ -3244,6 +3258,16 @@
           }
 
           fullText += lines.join('\n') + '\n\n';
+        }
+
+        try {
+          const annotations = await page.getAnnotations();
+          const links = annotations.filter(a => a.subtype === 'Link' && a.url).map(a => a.url);
+          if (links.length > 0) {
+            fullText += '\n[Extracted Links: ' + links.join(', ') + ']\n\n';
+          }
+        } catch (e) {
+          console.warn('Could not extract annotations:', e);
         }
       }
 
@@ -3747,7 +3771,8 @@ ${safeResume}
 
       // Prepare context
       const jd = document.getElementById('jdInput').value.trim();
-      const resultsSummary = results.map((r, i) => `#${i + 1} ${r.candidateName}: ${r.score}% - ${r.summary}`).join('\n');
+      const resultsSummary = results.length > 0 ? JSON.stringify(results, null, 2) : 'No candidates analyzed yet.';
+      const rawResumes = files.map(f => `--- RESUME: ${f.name} ---\n${f.text ? f.text.slice(0, 6000) : 'Not parsed yet'}`).join('\n\n');
 
       const prompt = `You are a helpful recruitment assistant for "ResumeIQ", a browser-based resume analysis tool.
 
@@ -3756,11 +3781,16 @@ CORE GUIDELINES:
 - The user pastes the Job Description into the text area on the main screen and uploads PDF/Docx resumes.
 - You should ONLY provide advice based on the data provided below.
 - If the user asks how to use the tool, tell them to paste a JD in the "Job Description" section and upload resumes in the "Upload Resumes" section.
+- You have access to the RAW RESUMES text and the ANALYZED CANDIDATES JSON. Use them to extract locations, links of socials, analysis insights, and answer any specific questions about the candidate's resume.
 
 Context:
 JOB DESCRIPTION: ${jd || 'Not provided yet.'}
-ANALYZED CANDIDATES:
-${resultsSummary || 'No candidates analyzed yet.'}
+
+ANALYZED CANDIDATES JSON:
+${resultsSummary}
+
+RAW RESUMES:
+${rawResumes || 'No resumes uploaded yet.'}
 
 USER QUESTION: ${text}`;
 
@@ -3776,7 +3806,17 @@ USER QUESTION: ${text}`;
 
         aiMsgDiv.innerHTML = formatChatText(response);
       } catch (e) {
-        aiMsgDiv.innerHTML = `<span style="color:#c0392b">Error: ${e.message}</span>`;
+        let errMsg = e.message;
+        if (errMsg.toLowerCase().includes('rate limit') || errMsg.toLowerCase().includes('429')) {
+          const timeMatch = errMsg.match(/in ([\d.]+[smh])/i) || errMsg.match(/after ([\d.]+[smh])/i);
+          let time = timeMatch ? timeMatch[1] : 'a moment';
+          // Clean up long decimals like 14.129999999s -> 14.1s
+          time = time.replace(/(\d+\.\d{1})\d+([smh])/, '$1$2');
+          errMsg = `Rate limit exceeded. Please try again in ${time}.`;
+        } else {
+          errMsg = `Error: ${errMsg}`;
+        }
+        aiMsgDiv.innerHTML = `<span style="color:#c0392b; font-weight: 500;">${errMsg}</span>`;
       }
 
       const msgs = document.getElementById('chatMessages');
