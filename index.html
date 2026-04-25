@@ -3812,7 +3812,7 @@ USER QUESTION: ${text}`;
           let time = timeMatch ? timeMatch[1] : 'a moment';
           // Clean up long decimals like 14.129999999s -> 14.1s
           time = time.replace(/(\d+\.\d{1})\d+([smh])/, '$1$2');
-          errMsg = `Rate limit exceeded. Please try again in ${time}.`;
+          errMsg = `${p.name} rate limit exceeded. Please try again in ${time}.`;
         } else {
           errMsg = `Error: ${errMsg}`;
         }
