@@ -27,23 +27,33 @@ ResumeIQ uses a specialized local engine to handle complex resume formats:
 - **Built-in OCR**: Automatically detects scanned PDFs and images (PNG, JPG), using Tesseract.js to extract text locally.
 - **Universal Word Support**: Native `.docx` and `.doc` parsing via Mammoth.js for clean text extraction.
 
+### 📊 Hybrid Scoring & ATS Analysis
+Inspired by industry leaders like *Resume-Matcher* and *RAG-Anything*:
+- **Markdown-Hierarchical Prompting**: Uses structured document segmentation to ensure AI never "drops" data during extraction.
+- **ATS Buzzword Detection**: Automatically flags generic jargon (e.g., *synergy*, *rockstar*) and provides an **ATS Readability Score**.
+
 ### 🧠 Multi-Provider AI Engine
 Connect to the world's most powerful AI models with ease:
 - **7+ AI Provider Support**: Use your own API key for Google Gemini, Groq, NVIDIA NIM, OpenRouter, and more.
-- **Smart Fallback**: Automatically cycles through free models (via OpenRouter) if one is overloaded.
-- **Custom Endpoints**: Fully compatible with any OpenAI-standard API (Ollama, LM Studio).
+- **Default Public API**: Works out of the box with Pollinations AI.
 
 ### 💬 Intelligent AI Assistant
-Go beyond simple scoring. Our built-in chat assistant allows you to interact with your data:
-- **Candidate Comparison**: Ask "Why is Candidate A a better fit than Candidate B?" for instant, tabulated comparisons.
-- **Interview Prep**: Generate targeted interview questions based on a candidate's specific gaps or strengths.
-- **Deep Dives**: Query specific details about experience or educational background.
+- **Candidate Comparison**: Ask "Why is Candidate A a better fit than Candidate B?" for instant comparisons.
+- **Interview Prep**: Generate targeted interview questions based on candidate gaps.
 
-### 📊 Professional Analytics & Reporting
-- **Multi-Resume Analysis**: Upload up to 10 resumes (PDF, Word, Images, TXT, RTF, MD) and rank them all at once.
-- **Automated Ranking**: Instantly sort candidates based on a weighted compatibility score.
-- **Premium PDF Export**: Generate boardroom-ready hiring reports with consistent branding and recruiter insights.
-- **Carousel + Table Views**: Visualize results side-by-side or in a sortable table.
+### 📮 Secure Issue Reporting
+ResumeIQ includes a built-in "Report Issue" mechanism that uses a secure serverless proxy to send feedback to developers.
+
+---
+
+## 🛠 Secure Configuration (Resend API)
+
+To receive issue reports via email without exposing your API key, you must host this project on a platform that supports serverless functions (like Vercel or Netlify) and set the following **Environment Variables**:
+
+1.  `RESEND_API_KEY`: Your secret API key from [resend.com](https://resend.com).
+2.  `REPORT_RECIPIENT_EMAIL`: The email address where you want to receive reports.
+
+The frontend calls the `/api/report` endpoint, which securely processes the email on the server side.
 
 ---
 
@@ -51,13 +61,10 @@ Go beyond simple scoring. Our built-in chat assistant allows you to interact wit
 
 | Provider | Key Required | Model Used | Notes |
 |---|---|---|---|
-| **Pollinations AI** | ❌ None | `openai` (public) | Default — works instantly |
-| **Google Gemini** | ✅ Free | `gemini-3.1-flash-lite` | [Get key](https://aistudio.google.com) |
+| **Pollinations AI** | ❌ None | `openai` (public) | **Default** — May be slow |
+| **Google Gemini** | ✅ Free | `gemini-3.1-flash-lite` | [Get key](https://aistudio.google.com) — **Recommended** |
 | **Groq** | ✅ Free | `llama-3.3-70b-versatile` | [Get key](https://console.groq.com) |
-| **NVIDIA NIM** | ✅ Free credits | `llama-3.3-70b-instruct` | [Get key](https://build.nvidia.com) |
-| **OpenRouter** | ✅ Free | `llama-3.3-70b-instruct:free` | [Get key](https://openrouter.ai) — auto-fallback |
-| **OpenAI** | 💳 Paid | `gpt-4o-mini` | New accounts get $5 credit |
-| **Anthropic Claude** | 💳 Paid | `claude-sonnet-3.5` | Industry-leading quality |
+| **OpenRouter** | ✅ Free | `llama-3.3-70b-instruct:free` | [Get key](https://openrouter.ai) |
 
 ---
 
@@ -67,15 +74,8 @@ Go beyond simple scoring. Our built-in chat assistant allows you to interact wit
 Upload Resumes (PDF/Word/Images/Text)
         ↓
 Local Parsing Engine (Browser-side)
-├─ Layout-Aware PDF extraction
-├─ Mammoth.js for Word Documents
-└─ Tesseract.js OCR (for scanned docs)
         ↓
-Build Analysis Prompt (Resume + Job Description)
-        ↓
-Send to AI Provider (your chosen API)
-        ↓
-Parse JSON Response → Score + Rank
+Analysis Engine (Hybrid AI + Heuristic)
         ↓
 Render Carousel & Table Results
         ↓
@@ -89,29 +89,11 @@ Export PDF Report (optional)
 | Layer | Technology |
 |---|---|
 | **Structure** | HTML5 Semantic Markup |
-| **Styling** | Vanilla CSS3 (Glassmorphism, Dynamic Transitions) |
 | **Logic** | Vanilla JavaScript (ES6+) |
-| **PDF Engine** | [PDF.js](https://mozilla.github.io/pdf.js/) (Layout-Aware Mode) |
+| **PDF Engine** | [PDF.js](https://mozilla.github.io/pdf.js/) |
 | **OCR Engine** | [Tesseract.js](https://tesseract.projectnaptha.com/) |
 | **Word Engine** | [Mammoth.js](https://github.com/mwilliamson/js-mammoth) |
-| **Typography** | Playfair Display & Outfit |
-
----
-
-## 📁 Repository Structure
-
-```
-resumeIQ/
-├── index.html   # The entire application (single file)
-├── README.md
-└── LICENSE
-```
-
----
-
-## 📜 License
-
-This project is licensed under the **MIT License** — see the [LICENSE](./LICENSE) file for details.
+| **Email API** | [Resend](https://resend.com/) (Serverless Proxy) |
 
 ---
 
