@@ -914,7 +914,7 @@
       cursor: pointer;
       transition: all .2s cubic-bezier(.4, 0, .2, 1);
       color: var(--ink);
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
 
     .carousel-arrow:hover:not(:disabled) {
@@ -922,7 +922,7 @@
       color: #f5f2ec;
       border-color: var(--ink);
       transform: scale(1.08);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
 
     .carousel-arrow:active:not(:disabled) {
@@ -2471,7 +2471,8 @@
     <div class="workflow">
       <div class="workflow-step">
         <div class="step-num">01</div>
-        <div class="step-text"><strong>Choose AI Provider</strong><span>Select from multiple publicly available free AI models to power your analysis.</span></div>
+        <div class="step-text"><strong>Choose AI Provider</strong><span>Select from multiple publicly available free AI
+            models to power your analysis.</span></div>
       </div>
       <div class="workflow-step">
         <div class="step-num">02</div>
@@ -2480,7 +2481,8 @@
       </div>
       <div class="workflow-step">
         <div class="step-num">03</div>
-        <div class="step-text"><strong>Upload &amp; Analyze</strong><span>Drop PDFs, Images, or text files and get ranked results with recommendations.</span></div>
+        <div class="step-text"><strong>Upload &amp; Analyze</strong><span>Drop PDFs, Images, or text files and get
+            ranked results with recommendations.</span></div>
       </div>
     </div>
 
@@ -2653,9 +2655,13 @@
     </div>
     <div id="chatMessages" class="chat-messages">
       <div class="message ai">
-        Hello! I've analyzed your candidates. Ask me anything about their fit, skills, or even for interview question suggestions!
+        Hello! I've analyzed your candidates. Ask me anything about their fit, skills, or even for interview question
+        suggestions!
         <br><br>
-        <small style="opacity:0.7; font-size:10px"><em>Note: Responses are generated based on your selected AI Provider.</em></small>
+        <div id="chatNote"
+          style="background:rgba(192, 57, 43, 0.05); border:1px solid rgba(192, 57, 43, 0.1); border-radius:6px; padding:8px; font-size:10px; color:#c0392b; line-height:1.4;">
+          <!-- Dynamic Note -->
+        </div>
       </div>
     </div>
     <div class="chat-input-area">
@@ -2680,7 +2686,9 @@
 
   <div class="footer">
     ResumeIQ · Built by <strong><a href="https://github.com/opsengine-sys" target="_blank"
-        style="color:var(--ink);text-decoration:none">opsengine-sys</a></strong> · Powered by Publicly Available Free AI APIs · <a href="javascript:void(0)" onclick="openAttributions()" style="color:inherit; text-decoration:underline">Attributions</a> · All rights reserved
+        style="color:var(--ink);text-decoration:none">opsengine-sys</a></strong> · Powered by Publicly Available Free AI
+    APIs · <a href="javascript:void(0)" onclick="openAttributions()"
+      style="color:inherit; text-decoration:underline">Attributions</a> · All rights reserved
   </div>
 
   <!-- PROVIDER MODAL -->
@@ -2689,6 +2697,12 @@
     <div class="modal">
       <div class="modal-title">Choose AI Provider</div>
       <div class="modal-sub">Pick a publicly available free AI model to power your analysis.</div>
+      <div
+        style="margin: 12px 0; padding: 10px 14px; background: #fffcf0; border: 1px solid #f8e4a8; border-radius: 8px; font-size: 11px; color: #856404; display: flex; gap: 10px; align-items: center;">
+        <span style="font-size: 16px;">⏳</span>
+        <div><strong>Default Provider Notice:</strong> Public APIs are shared and may be slow or have rate limits. We
+          recommend using your own <strong>Gemini</strong> or <strong>Groq</strong> key for high performance.</div>
+      </div>
       <div class="provider-cards" id="providerCards"></div>
 
       <div id="customUrlWrap" class="custom-url-field" style="display:none">
@@ -2941,7 +2955,8 @@
   <!-- DRAWER -->
   <div id="drawerOverlay" class="drawer-overlay" style="display:none" onclick="closeDrawer()"></div>
   <div id="drawer" class="drawer" style="display:none"></div>
-  <input type="file" id="fileInput" multiple accept=".pdf,.txt,.doc,.docx,.rtf,.md,image/*" onchange="handleFileInput(event)" />
+  <input type="file" id="fileInput" multiple accept=".pdf,.txt,.doc,.docx,.rtf,.md,image/*"
+    onchange="handleFileInput(event)" />
 
   <script>
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -3051,6 +3066,24 @@
     function openAttributions() { document.getElementById('attributionsModal').style.display = 'flex'; }
     function closeAttributionsModal() { document.getElementById('attributionsModal').style.display = 'none'; }
 
+    function updateChatNote() {
+      const el = document.getElementById('chatNote');
+      if (!el) return;
+      const p = getProvider();
+      const isPublic = p.id === 'pollinations';
+      if (isPublic) {
+        el.style.background = 'rgba(192, 57, 43, 0.05)';
+        el.style.borderColor = 'rgba(192, 57, 43, 0.1)';
+        el.style.color = '#c0392b';
+        el.innerHTML = `<strong>Note:</strong> Public AI API is currently active. Responses may be slower or experience rate limits. For best results, switch to your own API key in the Provider settings.`;
+      } else {
+        el.style.background = 'rgba(39, 112, 74, 0.05)';
+        el.style.borderColor = 'rgba(39, 112, 74, 0.1)';
+        el.style.color = '#27704a';
+        el.innerHTML = `<strong>Connected:</strong> Responses are generated using your <strong>${p.name}</strong> API key for high performance.`;
+      }
+    }
+
     function renderProviderCards() {
       document.getElementById('providerCards').innerHTML = PROVIDERS.map(p => `
     <div class="provider-card ${p.id === selectedProviderId ? 'selected' : ''}" onclick="selectProviderCard('${p.id}')">
@@ -3097,12 +3130,14 @@
       document.getElementById('providerPillText').textContent = p.noKey ? `${p.name} · Free` : `${p.name} · ${p.id === 'custom' ? customModelId : p.model.split('/').pop().replace(':free', '')}`;
       closeProviderModal();
       updateAnalyzeBtn();
+      updateChatNote();
     }
 
     window.addEventListener('DOMContentLoaded', () => {
       const rDetails = sessionStorage.getItem('recruiterDetails');
       if (rDetails) document.getElementById('recruiterInput').value = rDetails;
       renderProviderCards();
+      updateChatNote();
     });
 
     // ── FILES ─────────────────────────────────────────────────────
@@ -3299,10 +3334,10 @@
       const ready = files.filter(f => f.status === 'ready' || f.status === 'done');
       const parsing = files.filter(f => f.status.includes('parsing'));
       const errors = files.filter(f => f.status === 'error');
-      
+
       const btn = document.getElementById('analyzeBtn'), hint = document.getElementById('analyzeHint');
       const p = getProvider();
-      
+
       // Much more relaxed requirements: just 5 chars for JD
       const hasKey = p.noKey || (typeof apiKey === 'string' && apiKey.length > 5);
       const hasJd = jd.length >= 5;
@@ -3311,7 +3346,7 @@
 
       const ok = hasKey && hasJd && hasReady;
       btn.disabled = !ok;
-      
+
       if (!hasKey) {
         hint.innerHTML = '⚠ Click <strong>AI Provider</strong> to set your API key.';
       } else if (!hasJd) {
@@ -3324,8 +3359,20 @@
         if (errors.length > 0) hint.innerHTML = '❌ Parsing failed for all files. Check console or try different files.';
         else hint.innerHTML = 'Waiting for parsing to complete...';
       } else {
-        hint.innerHTML = `Ready · <strong>${ready.length}</strong> resume${ready.length > 1 ? 's' : ''} · <strong>${p.name}</strong>`;
+        const isPublic = p.id === 'pollinations';
+        hint.innerHTML = `Ready · <strong>${ready.length}</strong> resume${ready.length > 1 ? 's' : ''} · <strong>${p.name}</strong> ${isPublic ? '<span style="color:#c0392b;margin-left:4px">(Public API - May be slow)</span>' : ''}`;
       }
+    }
+
+    // ── ATS UTILS ──────────────────────────────────────────────────
+    const BUZZWORDS = ['synergy', 'spearheaded', 'orchestrated', 'leveraged', 'passionate', 'results-driven', 'team player', 'outside the box', 'dynamic', 'motivated', 'detail-oriented', 'thought leader', 'value-add', 'ninja', 'rockstar', 'guru'];
+
+    function analyzeBuzzwords(text) {
+      if (!text) return { found: [], score: 100 };
+      const words = text.toLowerCase().match(/\w+/g) || [];
+      const found = BUZZWORDS.filter(bw => words.includes(bw));
+      const score = Math.max(0, 100 - (found.length * 5));
+      return { found, score };
     }
 
     // ── ANALYSIS ─────────────────────────────────────────────────
@@ -3422,17 +3469,39 @@
         .replace(/[\u0000-\u001F\u007F]/g, ' ')
         .replace(/"/g, "'");
 
-      return `You are an expert ATS and senior recruiter. Analyze the resume against the job description.
-You MUST respond with ONLY a raw JSON object. No markdown, no code fences, no explanation — just the JSON.
+      return `You are an expert ATS (Applicant Tracking System) and Senior Technical Recruiter.
+Your goal is to extract structured data and provide a highly objective compatibility score.
 
-JOB DESCRIPTION:
+### INSTRUCTIONS:
+1. Analyze the RESUME against the JOB DESCRIPTION.
+2. Identify specific evidence for skills and experience.
+3. Calculate scores (0-100) based on strict alignment.
+4. Return ONLY a raw JSON object. No markdown, no preamble.
+
+### JOB DESCRIPTION:
 ${safeJD}
 
-RESUME (${entry.name}):
+### RESUME (${entry.name}):
 ${safeResume}
 
-Respond with ONLY this JSON (fill every field, use only simple ASCII in strings):
-{"candidateName":"string","currentRole":"string","yearsExperience":"string","score":0,"skillsScore":0,"experienceScore":0,"educationScore":0,"communicationScore":0,"matchedSkills":["skill1"],"missingSkills":["skill1"],"strengths":["strength1"],"concerns":["concern1"],"summary":"string","recommendation":"string","hiringAction":"Hire|Consider|Pass"}`;
+### OUTPUT SCHEMA (JSON ONLY):
+{
+  "candidateName": "string",
+  "currentRole": "string",
+  "yearsExperience": "string (total years found)",
+  "score": 0, 
+  "skillsScore": 0, 
+  "experienceScore": 0, 
+  "educationScore": 0, 
+  "communicationScore": 0,
+  "matchedSkills": ["exact skills matched"],
+  "missingSkills": ["required skills not found"],
+  "strengths": ["3-4 bullet points of evidence-backed strengths"],
+  "concerns": ["any red flags or missing requirements"],
+  "summary": "1-2 sentence executive summary of the candidate's profile",
+  "recommendation": "Final recommendation (Hire/Consider/Pass) with a brief justification",
+  "hiringAction": "Hire|Consider|Pass"
+}`;
     }
 
     async function callProvider(entry, jd, signal) {
@@ -4144,6 +4213,14 @@ USER QUESTION: ${text}`;
       <div><div class="drawer-section-title">Hiring Recommendation</div>
         <div class="recommendation-box">${escHtml(r.recommendation || '')}</div>
       </div>
+      ${(() => {
+          const bw = analyzeBuzzwords(r.summary + ' ' + (r.strengths || []).join(' '));
+          if (bw.found.length === 0) return '';
+          return `<div><div class="drawer-section-title">ATS Readability Score: ${bw.score}%</div>
+          <div style="font-size:11px;color:var(--ink3);margin-bottom:8px">Flagged generic jargon (try to replace with specific achievements):</div>
+          <div class="skill-chips">${bw.found.map(w => `<span class="skill-chip" style="background:#eee;color:#666">${w}</span>`).join('')}</div>
+        </div>`;
+        })()}
     </div>`;
       document.getElementById('drawerOverlay').style.display = 'block';
       document.getElementById('drawer').style.display = 'block';
@@ -4414,6 +4491,10 @@ USER QUESTION: ${text}`;
     function showError(msg) { const el = document.getElementById('errorBanner'); el.style.display = 'flex'; el.innerHTML = `<span>⚠</span><span>${escHtml(msg)}</span>`; }
     function hideError() { document.getElementById('errorBanner').style.display = 'none'; }
     function escHtml(str) { if (!str) return ''; return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+
+    // Initial calls
+    updateChatNote();
+
     document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeDrawer(); closeProviderModal(); closeInstructionsModal(); closeAttributionsModal(); } });
   </script>
 </body>
