@@ -2615,7 +2615,7 @@
         <div class="api-suggestion-icon">💡</div>
         <div class="api-suggestion-text">
           Not satisfied with these results? Try switching to a different <strong>AI Provider</strong> like <em>Google
-            Gemini 2.0</em>, <em>Anthropic Claude</em> or <em>OpenRouter</em> free models for more nuanced analysis.
+            Gemini</em>, <em>Anthropic Claude</em> or <em>OpenRouter</em> free models for more nuanced analysis.
         </div>
       </div>
 
@@ -3196,12 +3196,12 @@
       const arrayBuffer = await file.arrayBuffer();
       const rawResult = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
       const htmlResult = await mammoth.convertToHtml({ arrayBuffer: arrayBuffer });
-      
+
       let text = rawResult.value.trim();
       if (rawResult.messages && rawResult.messages.length > 0) {
         console.warn('Word parsing messages:', rawResult.messages);
       }
-      
+
       const html = htmlResult.value;
       const links = [];
       const linkRegex = /href=(["'])(.*?)\1/gi;
