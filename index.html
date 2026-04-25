@@ -2076,9 +2076,36 @@
       transform: translateY(20px) scale(0.95);
       opacity: 0;
       pointer-events: none;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       border: 1px solid var(--border);
       overflow: hidden;
+      min-width: 300px;
+      min-height: 400px;
+    }
+
+    .chat-resizer { position: absolute; z-index: 10; }
+    .chat-resizer-r { top: 0; right: 0; width: 6px; height: 100%; cursor: ew-resize; }
+    .chat-resizer-l { top: 0; left: 0; width: 6px; height: 100%; cursor: ew-resize; }
+    .chat-resizer-t { top: 0; left: 0; width: 100%; height: 6px; cursor: ns-resize; }
+    .chat-resizer-b { bottom: 0; left: 0; width: 100%; height: 6px; cursor: ns-resize; }
+    .chat-resizer-br { bottom: 0; right: 0; width: 14px; height: 14px; cursor: nwse-resize; }
+    .chat-resizer-bl { bottom: 0; left: 0; width: 14px; height: 14px; cursor: nesw-resize; }
+    .chat-resizer-tr { top: 0; right: 0; width: 14px; height: 14px; cursor: nesw-resize; }
+    .chat-resizer-tl { top: 0; left: 0; width: 14px; height: 14px; cursor: nwse-resize; }
+    
+    .chat-resizer-br::after {
+      content: '';
+      position: absolute;
+      bottom: 5px;
+      right: 5px;
+      width: 8px;
+      height: 8px;
+      background: linear-gradient(-45deg, transparent 40%, var(--ink3) 40%, var(--ink3) 50%, transparent 50%, transparent 70%, var(--ink3) 70%, var(--ink3) 80%, transparent 80%);
+      pointer-events: none;
+    }
+
+    .chat-drawer.resizing {
+      transition: none !important;
     }
 
     .chat-drawer.active {
@@ -2334,6 +2361,9 @@
         border-radius: 0;
         transform: translateY(100%);
         border: none;
+      }
+      .chat-resizer {
+        display: none !important;
       }
 
       .chat-drawer.active {
@@ -2644,6 +2674,14 @@
   </div>
 
   <div id="chatDrawer" class="chat-drawer">
+    <div class="chat-resizer chat-resizer-t" data-edge="t"></div>
+    <div class="chat-resizer chat-resizer-b" data-edge="b"></div>
+    <div class="chat-resizer chat-resizer-l" data-edge="l"></div>
+    <div class="chat-resizer chat-resizer-r" data-edge="r"></div>
+    <div class="chat-resizer chat-resizer-tl" data-edge="tl"></div>
+    <div class="chat-resizer chat-resizer-tr" data-edge="tr"></div>
+    <div class="chat-resizer chat-resizer-bl" data-edge="bl"></div>
+    <div class="chat-resizer chat-resizer-br" data-edge="br"></div>
     <div class="chat-head">
       <div class="chat-title">
         <div class="chat-status-dot"></div>
@@ -3751,6 +3789,86 @@ ${safeResume}
           isDragging = false;
           drawer.classList.remove('dragging');
           head.style.cursor = 'move';
+        }
+      });
+    })();
+
+    // Resizable Chat Assistant
+    (function () {
+      const drawer = document.getElementById('chatDrawer');
+      const resizers = drawer.querySelectorAll('.chat-resizer');
+      let isResizing = false;
+      let currentResizer = null;
+      let startX, startY, startWidth, startHeight, startLeft, startTop;
+
+      resizers.forEach(resizer => {
+        resizer.addEventListener('mousedown', (e) => {
+          if (window.innerWidth <= 580) return;
+          isResizing = true;
+          currentResizer = resizer;
+          startX = e.clientX;
+          startY = e.clientY;
+          const rect = drawer.getBoundingClientRect();
+          startWidth = rect.width;
+          startHeight = rect.height;
+          startLeft = rect.left;
+          startTop = rect.top;
+          
+          drawer.style.right = 'auto';
+          drawer.style.bottom = 'auto';
+          drawer.style.left = startLeft + 'px';
+          drawer.style.top = startTop + 'px';
+          drawer.style.width = startWidth + 'px';
+          drawer.style.height = startHeight + 'px';
+
+          drawer.classList.add('resizing');
+          e.preventDefault();
+        });
+      });
+
+      document.addEventListener('mousemove', (e) => {
+        if (!isResizing) return;
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        const edge = currentResizer.getAttribute('data-edge');
+
+        let newWidth = startWidth;
+        let newHeight = startHeight;
+        let newLeft = startLeft;
+        let newTop = startTop;
+
+        if (edge.includes('r')) newWidth = startWidth + dx;
+        if (edge.includes('b')) newHeight = startHeight + dy;
+        if (edge.includes('l')) {
+          newWidth = startWidth - dx;
+          newLeft = startLeft + dx;
+        }
+        if (edge.includes('t')) {
+          newHeight = startHeight - dy;
+          newTop = startTop + dy;
+        }
+
+        const minWidth = 300, minHeight = 400;
+        if (newWidth < minWidth) {
+          if (edge.includes('l')) newLeft -= (minWidth - newWidth);
+          newWidth = minWidth;
+        }
+        if (newHeight < minHeight) {
+          if (edge.includes('t')) newTop -= (minHeight - newHeight);
+          newHeight = minHeight;
+        }
+
+        drawer.style.width = newWidth + 'px';
+        drawer.style.height = newHeight + 'px';
+        drawer.style.left = newLeft + 'px';
+        drawer.style.top = newTop + 'px';
+      });
+
+      document.addEventListener('mouseup', () => {
+        if (isResizing) {
+          isResizing = false;
+          currentResizer = null;
+          drawer.classList.remove('resizing');
         }
       });
     })();
