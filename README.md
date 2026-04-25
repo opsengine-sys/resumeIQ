@@ -41,22 +41,6 @@ Connect to the world's most powerful AI models with ease:
 - **Candidate Comparison**: Ask "Why is Candidate A a better fit than Candidate B?" for instant comparisons.
 - **Interview Prep**: Generate targeted interview questions based on candidate gaps.
 
-### 📮 Secure Issue Reporting
-ResumeIQ includes a built-in "Report Issue" mechanism that uses a secure serverless proxy to send feedback to developers.
-
----
-
-## 🛠 Secure Configuration (Resend API)
-
-To receive issue reports via email without exposing your API key, you must host this project on a platform that supports serverless functions (like Vercel or Netlify) and set the following **Environment Variables**:
-
-1.  `RESEND_API_KEY`: Your secret API key from [resend.com](https://resend.com).
-2.  `REPORT_RECIPIENT_EMAIL`: The email address where you want to receive reports.
-
-The frontend calls the `/api/report` endpoint, which securely processes the email on the server side.
-
----
-
 ## 🤖 Supported AI Providers
 
 | Provider | Key Required | Model Used | Notes |
@@ -93,7 +77,6 @@ Export PDF Report (optional)
 | **PDF Engine** | [PDF.js](https://mozilla.github.io/pdf.js/) |
 | **OCR Engine** | [Tesseract.js](https://tesseract.projectnaptha.com/) |
 | **Word Engine** | [Mammoth.js](https://github.com/mwilliamson/js-mammoth) |
-| **Email API** | [Resend](https://resend.com/) (Serverless Proxy) |
 
 ---
 
