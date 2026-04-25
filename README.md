@@ -5,11 +5,11 @@
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-Netlify-black?style=flat-square&logo=netlify)](https://resumeiq-compare-jd.netlify.app/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](./LICENSE)
 [![No Install](https://img.shields.io/badge/No%20Install-Open%20in%20Browser-blue?style=flat-square)]()
-[![Zero Dependencies](https://img.shields.io/badge/Dependencies-Zero-green?style=flat-square)]()
+[![Built-in OCR](https://img.shields.io/badge/OCR-Tesseract.js-orange?style=flat-square)]()
 
 ---
 
-**ResumeIQ** is a modern, AI-powered recruitment tool designed to streamline the candidate screening process. By leveraging advanced Large Language Models (LLMs), it provides recruiters and hiring managers with deep insights into candidate suitability, technical skill alignment, and experience depth—all within a secure, browser-native environment.
+**ResumeIQ** is a modern, AI-powered recruitment tool designed to streamline the candidate screening process. By leveraging advanced Large Language Models (LLMs) and a specialized local parsing engine, it provides recruiters with deep insights into candidate suitability—all within a secure, browser-native environment.
 
 ---
 
@@ -21,8 +21,14 @@
 
 ## 🚀 Key Features
 
+### 🧠 Layout-Aware Parsing Engine
+ResumeIQ uses a specialized local engine to handle complex resume formats:
+- **Spatial Reconstruction**: Preserves columns, sidebars, and complex layouts in PDFs for more accurate AI analysis.
+- **Built-in OCR**: Automatically detects scanned PDFs and images (PNG, JPG), using Tesseract.js to extract text locally.
+- **Universal Word Support**: Native `.docx` and `.doc` parsing via Mammoth.js for clean text extraction.
+
 ### 🧠 Multi-Provider AI Engine
-Connect to the world's most powerful AI models with ease. ResumeIQ supports a wide range of providers:
+Connect to the world's most powerful AI models with ease:
 - **7+ AI Provider Support**: Use your own API key for Google Gemini, Groq, NVIDIA NIM, OpenRouter, and more.
 - **Smart Fallback**: Automatically cycles through free models (via OpenRouter) if one is overloaded.
 - **Custom Endpoints**: Fully compatible with any OpenAI-standard API (Ollama, LM Studio).
@@ -34,15 +40,10 @@ Go beyond simple scoring. Our built-in chat assistant allows you to interact wit
 - **Deep Dives**: Query specific details about experience or educational background.
 
 ### 📊 Professional Analytics & Reporting
-- **Multi-Resume Analysis**: Upload up to 10 resumes (PDF, DOCX, TXT, RTF, MD) and rank them all at once.
+- **Multi-Resume Analysis**: Upload up to 10 resumes (PDF, Word, Images, TXT, RTF, MD) and rank them all at once.
 - **Automated Ranking**: Instantly sort candidates based on a weighted compatibility score.
-- **Skill Mapping**: Visualize matched and missing skills with intuitive, color-coded badges.
 - **Premium PDF Export**: Generate boardroom-ready hiring reports with consistent branding and recruiter insights.
 - **Carousel + Table Views**: Visualize results side-by-side or in a sortable table.
-
-### 🛡️ Privacy & Security First
-- **Browser-Native**: No server-side storage. All processing happens between your browser and your AI provider.
-- **Session Security**: API keys are stored only in volatile session memory and are cleared when the tab is closed.
 
 ---
 
@@ -51,44 +52,24 @@ Go beyond simple scoring. Our built-in chat assistant allows you to interact wit
 | Provider | Key Required | Model Used | Notes |
 |---|---|---|---|
 | **Pollinations AI** | ❌ None | `openai` (public) | Default — works instantly |
-| **Google Gemini** | ✅ Free | `gemini-2.0-flash` | [Get key](https://aistudio.google.com) |
+| **Google Gemini** | ✅ Free | `gemini-3.1-flash-lite` | [Get key](https://aistudio.google.com) |
 | **Groq** | ✅ Free | `llama-3.3-70b-versatile` | [Get key](https://console.groq.com) |
 | **NVIDIA NIM** | ✅ Free credits | `llama-3.3-70b-instruct` | [Get key](https://build.nvidia.com) |
 | **OpenRouter** | ✅ Free | `llama-3.3-70b-instruct:free` | [Get key](https://openrouter.ai) — auto-fallback |
 | **OpenAI** | 💳 Paid | `gpt-4o-mini` | New accounts get $5 credit |
-| **Anthropic Claude** | 💳 Paid | `claude-sonnet-4` | Industry-leading quality |
-
----
-
-## 📖 Quick Start Guide
-
-1. **Open the App**: Access the [Live Demo](https://resumeiq-compare-jd.netlify.app/) or open `index.html` locally.
-2. **Setup Provider**: Click the **"Click to set AI Provider"** pill in the nav bar and enter your API key.
-3. **Define the Role**: Paste the Job Description into the JD field.
-4. **Upload Resumes**: Drag and drop resumes into the drop zone.
-5. **Analyze**: Click **"Analyze Candidates"** and watch the AI rank them in real-time.
-6. **Chat & Export**: Use the Chat Bubble for follow-up questions, then export to PDF.
-
----
-
-## 🔑 How to Get a Free API Key
-
-### Google Gemini (Recommended)
-1. Visit [aistudio.google.com](https://aistudio.google.com) and sign in.
-2. Click **"Get API Key"** → **"Create API key"**.
-
-### Groq (Fastest)
-1. Visit [console.groq.com](https://console.groq.com) and sign up.
-2. Go to **"API Keys"** → **"Create API Key"**.
+| **Anthropic Claude** | 💳 Paid | `claude-sonnet-3.5` | Industry-leading quality |
 
 ---
 
 ## 📄 How It Works
 
 ```
-Upload Resumes (PDF/DOCX/TXT)
+Upload Resumes (PDF/Word/Images/Text)
         ↓
-Extract Text (PDF.js for PDFs, FileReader for others)
+Local Parsing Engine (Browser-side)
+├─ Layout-Aware PDF extraction
+├─ Mammoth.js for Word Documents
+└─ Tesseract.js OCR (for scanned docs)
         ↓
 Build Analysis Prompt (Resume + Job Description)
         ↓
@@ -109,9 +90,11 @@ Export PDF Report (optional)
 |---|---|
 | **Structure** | HTML5 Semantic Markup |
 | **Styling** | Vanilla CSS3 (Glassmorphism, Dynamic Transitions) |
-| **Logic** | Vanilla JavaScript (ES6+) — Zero Dependencies |
-| **PDF Parsing** | [PDF.js](https://mozilla.github.io/pdf.js/) via CDN |
-| **Typography** | Playfair Display (Headings) & Outfit (UI/Body) |
+| **Logic** | Vanilla JavaScript (ES6+) |
+| **PDF Engine** | [PDF.js](https://mozilla.github.io/pdf.js/) (Layout-Aware Mode) |
+| **OCR Engine** | [Tesseract.js](https://tesseract.projectnaptha.com/) |
+| **Word Engine** | [Mammoth.js](https://github.com/mwilliamson/js-mammoth) |
+| **Typography** | Playfair Display & Outfit |
 
 ---
 
@@ -119,7 +102,7 @@ Export PDF Report (optional)
 
 ```
 resumeIQ/
-├── resume-analyzer.html   # The entire application (single file)
+├── index.html   # The entire application (single file)
 ├── README.md
 └── LICENSE
 ```
